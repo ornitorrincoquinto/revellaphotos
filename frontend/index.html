@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REVELA — prova e entrega de fotos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14161A; --ink-2:#1B1E23; --panel:#22262C; --panel-2:#282C33;
+    --line: rgba(243,240,234,0.10);
+    --light-table:#ECE7DC; --paper-line: rgba(20,22,26,0.12);
+    --accent:#E0472B; --accent-dim: rgba(224,71,43,0.16); --accent-2:#C9A227;
+    --text:#F3F0EA; --text-dim:#9B9A92; --ink-text:#171713; --ink-text-dim:#6E6A5D;
+    --radius:4px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--ink);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.display{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  button:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
+
+  #topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;background:rgba(20,22,26,0.92);backdrop-filter:blur(6px);}
+  .wordmark{display:flex;align-items:baseline;gap:10px;cursor:pointer;}
+  .wordmark .mark{font-size:20px;letter-spacing:0.12em;}
+  .wordmark .mark span{color:var(--accent);}
+  .wordmark .sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.08em;}
+  #topbar nav{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--text-dim);}
+  #topbar nav button{background:none;border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:var(--radius);font-size:12px;letter-spacing:0.04em;text-transform:uppercase;font-weight:500;}
+  #topbar nav button:hover{border-color:var(--accent-2);}
+  .sprocket-row{height:8px;background-image:radial-gradient(circle, rgba(243,240,234,0.35) 1.6px, transparent 1.7px);background-size:14px 8px;background-repeat:repeat-x;background-position:center;opacity:0.5;}
+
+  main{max-width:1080px;margin:0 auto;padding:40px 24px 80px;}
+  .view{display:none;}
+  .view.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .hero{padding:48px 0 32px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;color:var(--accent-2);font-size:12px;letter-spacing:0.15em;margin-bottom:14px;}
+  .hero h1{font-size:clamp(32px,6vw,54px);line-height:1.02;max-width:820px;}
+  .hero p.lede{color:var(--text-dim);font-size:16px;max-width:540px;margin-top:18px;line-height:1.6;font-family:'Inter';text-transform:none;letter-spacing:normal;}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:40px;}
+  @media (max-width:640px){.tiles{grid-template-columns:1fr;}}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px;text-align:left;transition:border-color .15s, transform .15s;}
+  .tile:hover{border-color:var(--accent-2);transform:translateY(-2px);}
+  .tile .num{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:12px;margin-bottom:10px;}
+  .tile h3{font-size:20px;margin-bottom:8px;}
+  .tile p{color:var(--text-dim);font-size:13.5px;line-height:1.5;margin:0 0 16px;font-family:'Inter';text-transform:none;letter-spacing:normal;font-weight:400;}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;padding:11px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;font-family:'Oswald',sans-serif;}
+  .btn:hover{background:#c93c22;}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .btn.secondary{background:transparent;border:1px solid var(--line);color:var(--text);}
+  .btn.secondary:hover{border-color:var(--accent-2);}
+  .btn.small{padding:8px 14px;font-size:11px;}
+  .btn.danger{background:transparent;border:1px solid rgba(224,71,43,0.4);color:var(--accent);}
+  .btn.danger:hover{background:var(--accent-dim);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:28px;}
+  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:7px;font-family:'IBM Plex Mono',monospace;}
+  .field input, .field textarea{width:100%;background:var(--ink-2);border:1px solid var(--line);color:var(--text);padding:11px 13px;border-radius:var(--radius);font-size:14px;font-family:'Inter';}
+  .field input:focus, .field textarea:focus{border-color:var(--accent-2);}
+  .field .hint{font-size:12px;color:var(--text-dim);margin-top:6px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:560px){.row2{grid-template-columns:1fr;}}
+  .error-text{color:var(--accent);font-size:13px;margin-top:10px;}
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--text-dim);font-size:12px;margin-bottom:22px;background:none;border:none;text-transform:uppercase;letter-spacing:0.06em;font-family:'IBM Plex Mono',monospace;}
+  .back-link:hover{color:var(--text);}
+
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--accent-2);color:var(--text);padding:12px 20px;border-radius:var(--radius);font-size:13px;z-index:100;opacity:0;pointer-events:none;transition:all .25s ease;max-width:90vw;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .auth-wrap{max-width:420px;margin:20px auto 0;}
+  .tab-switch{display:flex;gap:2px;margin-bottom:26px;background:var(--ink-2);border-radius:var(--radius);padding:3px;}
+  .tab-switch button{flex:1;background:none;border:none;color:var(--text-dim);padding:9px;border-radius:2px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;font-family:'Oswald';font-weight:500;}
+  .tab-switch button.active{background:var(--panel);color:var(--text);}
+
+  .type-switch{display:flex;gap:2px;margin-bottom:26px;background:var(--ink-2);border-radius:var(--radius);padding:3px;max-width:420px;}
+  .type-switch button{flex:1;background:none;border:none;color:var(--text-dim);padding:10px;border-radius:2px;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;font-family:'Oswald';font-weight:500;}
+  .type-switch button.active{background:var(--panel);color:var(--text);}
+
+  .item-list{display:flex;flex-direction:column;gap:12px;margin-top:10px;}
+  .item-row{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;cursor:pointer;transition:border-color .15s;}
+  .item-row:hover{border-color:var(--accent-2);}
+  .item-row .thumb{width:56px;height:56px;border-radius:2px;object-fit:cover;background:var(--ink-2);flex-shrink:0;}
+  .item-row .meta{flex:1;min-width:0;}
+  .item-row .meta h4{font-family:'Oswald';font-size:15px;text-transform:none;letter-spacing:normal;font-weight:600;margin:0 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item-row .meta span{font-size:12px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;padding:5px 9px;border-radius:20px;white-space:nowrap;}
+  .badge.waiting{background:rgba(201,162,39,0.15);color:var(--accent-2);}
+  .badge.confirmed{background:rgba(107,168,110,0.15);color:#7FC48A;}
+  .badge.empty{background:rgba(155,154,146,0.12);color:var(--text-dim);}
+  .badge.event{background:rgba(224,71,43,0.14);color:var(--accent);}
+  .empty-state{padding:60px 20px;text-align:center;color:var(--text-dim);border:1px dashed var(--line);border-radius:var(--radius);}
+  .empty-state h3{font-size:16px;color:var(--text);margin-bottom:8px;text-transform:none;letter-spacing:normal;font-family:'Inter';font-weight:600;}
+
+  .dropzone{border:1.5px dashed var(--line);border-radius:var(--radius);padding:34px 20px;text-align:center;color:var(--text-dim);cursor:pointer;transition:border-color .15s,background .15s;}
+  .dropzone.drag{border-color:var(--accent-2);background:rgba(201,162,39,0.06);}
+  .dropzone strong{color:var(--text);}
+  .thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:18px;}
+  .thumb-item{position:relative;border-radius:2px;overflow:hidden;aspect-ratio:1;background:var(--ink-2);}
+  .thumb-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb-item .status{position:absolute;bottom:0;left:0;right:0;font-family:'IBM Plex Mono',monospace;font-size:9px;text-align:center;padding:3px 0;background:rgba(20,22,26,0.7);color:var(--text-dim);}
+  .thumb-item .status.ok{color:#7FC48A;}
+  .progress-line{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent-2);margin-top:12px;}
+
+  .code-box{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-top:18px;}
+  .code-box .code{font-family:'IBM Plex Mono',monospace;font-size:22px;letter-spacing:0.08em;color:var(--accent-2);word-break:break-all;}
+  .code-box .lbl{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;}
+
+  .light-table{background:var(--light-table);border-radius:var(--radius);padding:24px;background-image:linear-gradient(var(--paper-line) 1px, transparent 1px),linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);background-size:26px 26px;}
+  .lt-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;color:var(--ink-text);}
+  .lt-header h2{color:var(--ink-text);font-size:20px;}
+  .lt-header .sub{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-text-dim);}
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+  .photo-cell{position:relative;cursor:pointer;}
+  .photo-cell .frame{position:relative;aspect-ratio:1;border-radius:2px;overflow:hidden;background:#00000010;box-shadow:0 1px 2px rgba(20,22,26,0.15);}
+  .photo-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;}
+  .photo-cell:hover img{transform:scale(1.03);}
+  .photo-cell .mark-overlay{position:absolute;inset:-8px;pointer-events:none;opacity:0;transition:opacity .12s;}
+  .photo-cell.selected .mark-overlay{opacity:1;}
+  .photo-cell .mark-overlay svg{width:100%;height:100%;}
+  .photo-cell .idx{position:absolute;top:5px;left:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,0.9);background:rgba(20,22,26,0.5);padding:2px 5px;border-radius:2px;}
+  .photo-cell.selected .idx{background:var(--accent);}
+  .photo-cell.readonly{cursor:default;}
+  .photo-cell.readonly:hover img{transform:none;}
+  .photo-cell.not-picked{opacity:0.35;}
+  .photo-cell .confidence{position:absolute;bottom:5px;right:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#fff;background:rgba(20,22,26,0.6);padding:2px 6px;border-radius:2px;}
+
+  .selection-bar{position:sticky;bottom:0;margin-top:22px;background:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 -8px 24px rgba(0,0,0,0.35);}
+  .counter{font-family:'IBM Plex Mono',monospace;}
+  .counter .big{font-size:26px;color:var(--text);}
+  .counter .of{font-size:14px;color:var(--text-dim);}
+  .cost-line{font-size:13px;color:var(--accent-2);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+  .cost-line.zero{color:var(--text-dim);}
+
+  .info-strip{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0 4px;padding:14px 18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);}
+  .info-strip .item .lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;margin-bottom:4px;}
+  .info-strip .item .val{font-family:'Oswald';font-size:18px;}
+
+  .center-wrap{max-width:480px;margin:30px auto 0;text-align:center;}
+  .code-input{width:100%;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:0.15em;background:var(--ink-2);border:1px solid var(--line);color:var(--text);padding:16px;border-radius:var(--radius);text-transform:uppercase;}
+
+  .selfie-box{border:1.5px dashed var(--line);border-radius:var(--radius);padding:30px 20px;text-align:center;background:var(--panel);}
+  .selfie-preview{width:110px;height:110px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;border:2px solid var(--accent-2);}
+
+  .confirm-mark{width:76px;margin:0 auto 20px;}
+  footer.disclaimer{max-width:1080px;margin:60px auto 0;padding:0 24px 20px;color:var(--text-dim);font-size:11.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:18px;}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="wordmark" id="homeLink">
+    <span class="mark">REVELA<span>·</span></span>
+    <span class="sub">PROVA &amp; ENTREGA</span>
+  </div>
+  <nav id="topNav"></nav>
+</div>
+<div class="sprocket-row"></div>
+
+<main id="app">
+
+  <!-- HOME -->
+  <section class="view" id="view-home">
+    <div class="hero">
+      <div class="eyebrow">01 — ESCOLHA SEU CAMINHO</div>
+      <h1>Da sessão ao arquivo final, sem planilha e sem WhatsApp perdido.</h1>
+      <p class="lede">Crie uma galeria de seleção paga por extras, ou um evento onde cada pessoa encontra as próprias fotos com uma selfie — por reconhecimento facial.</p>
+      <div class="tiles">
+        <div class="tile" id="goPhotographer">
+          <div class="num">FOTÓGRAFO</div>
+          <h3>Acessar meu painel</h3>
+          <p>Cadastre-se, crie galerias de seleção ou eventos com busca facial.</p>
+          <button class="btn">Começar</button>
+        </div>
+        <div class="tile" id="goClient">
+          <div class="num">CLIENTE</div>
+          <h3>Tenho um código de galeria</h3>
+          <p>Recebeu um código do seu fotógrafo para escolher fotos de um ensaio? Entre aqui.</p>
+          <button class="btn secondary">Usar código</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHOTOGRAPHER AUTH -->
+  <section class="view" id="view-photog-auth">
+    <button class="back-link" data-back="view-home">‹ Voltar</button>
+    <div class="auth-wrap panel">
+      <div class="tab-switch">
+        <button id="tabLogin" class="active">Entrar</button>
+        <button id="tabRegister">Criar conta</button>
+      </div>
+      <form id="loginForm">
+        <div class="field"><label>Usuário</label><input type="text" id="loginUser" autocomplete="username" required></div>
+        <div class="field"><label>Senha</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
+        <button class="btn" type="submit" style="width:100%;justify-content:center;">Entrar</button>
+        <div class="error-text" id="loginError"></div>
+      </form>
+      <form id="registerForm" style="display:none;">
+        <div class="field"><label>Seu nome</label><input type="text" id="regName" required></div>
+        <div class="field"><label>Escolha um usuário</label><input type="text" id="regUser" required></div>
+        <div class="field"><label>Crie uma senha</label><input type="password" id="regPass" minlength="6" required>
+          <div class="hint">Mínimo de 6 caracteres.</div>
+        </div>
+        <button class="btn" type="submit" style="width:100%;justify-content:center;">Criar conta</button>
+        <div class="error-text" id="registerError"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="view" id="view-dashboard">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow" id="dashGreeting">SEU PAINEL</div>
+        <h2 style="font-size:26px;">Galerias e eventos</h2>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn secondary" id="newEventBtn">+ Novo evento</button>
+        <button class="btn" id="newGalleryBtn">+ Nova galeria</button>
+      </div>
+    </div>
+    <div class="item-list" id="dashList"></div>
+  </section>
+
+  <!-- CREATE GALLERY -->
+  <section class="view" id="view-gallery-form">
+    <button class="back-link" data-back="view-dashboard">‹ Voltar ao painel</button>
+    <div class="panel">
+      <h2 style="font-size:22px;margin-bottom:6px;">Nova galeria de seleção</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:22px;">O cliente recebe um código, escolhe as fotos e paga por extras além do pacote incluso.</p>
+      <div class="row2">
+        <div class="field"><label>Título da galeria</label><input type="text" id="gTitle" placeholder="Ex: Ensaio Ana &amp; Bruno"></div>
+        <div class="field"><label>Nome do cliente</label><input type="text" id="gClient" placeholder="Ex: Ana Souza"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Fotos incluídas no pacote</label><input type="number" id="gFree" min="0" value="20"></div>
+        <div class="field"><label>Valor por foto extra (R$)</label><input type="number" id="gExtra" min="0" step="0.01" value="15.00"></div>
+      </div>
+      <div class="error-text" id="gCreateError"></div>
+      <button class="btn" id="createGalleryBtn" style="margin-top:6px;">Criar galeria</button>
+
+      <div id="gPhotoUploadBlock" style="display:none;margin-top:30px;border-top:1px solid var(--line);padding-top:26px;">
+        <div class="field">
+          <label>Fotos</label>
+          <div class="dropzone" id="gDropzone"><strong>Clique para escolher fotos</strong> ou arraste os arquivos aqui.</div>
+          <input type="file" id="gFileInput" accept="image/*" multiple style="display:none;">
+          <div class="progress-line" id="gUploadProgress" style="display:none;"></div>
+          <div class="thumb-grid" id="gThumbGrid"></div>
+        </div>
+        <button class="btn secondary" id="gDoneBtn">Concluir e ver galeria</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY DETAIL (photographer) -->
+  <section class="view" id="view-gallery-detail">
+    <button class="back-link" data-back="view-dashboard">‹ Voltar ao painel</button>
+    <div class="card-head">
+      <div>
+        <div class="eyebrow" id="detailClient"></div>
+        <h2 id="detailTitle" style="font-size:26px;"></h2>
+      </div>
+      <button class="btn danger small" id="deleteGalleryBtn">Excluir galeria</button>
+    </div>
+    <div class="code-box">
+      <div><div class="lbl">Link para o cliente</div><div class="code" id="detailLink"></div></div>
+      <button class="btn secondary small" id="copyLinkBtn">Copiar link</button>
+    </div>
+    <div class="info-strip">
+      <div class="item"><div class="lbl">Fotos enviadas</div><div class="val" id="statTotalPhotos">0</div></div>
+      <div class="item"><div class="lbl">Incluídas no pacote</div><div class="val" id="statFree">0</div></div>
+      <div class="item"><div class="lbl">Valor da extra</div><div class="val" id="statExtraPrice">R$ 0</div></div>
+      <div class="item"><div class="lbl">Status</div><div class="val" id="statStatus" style="font-size:14px;"></div></div>
+    </div>
+    <div id="selectionSummary" style="margin-top:24px;"></div>
+    <div style="margin-top:26px;">
+      <input type="file" id="gDetailFileInput" accept="image/*" multiple style="display:none;">
+      <button class="btn secondary small" id="gDetailAddPhotosBtn">+ Adicionar mais fotos</button>
+      <div class="progress-line" id="gDetailUploadProgress" style="display:none;"></div>
+    </div>
+    <h3 style="margin-top:28px;margin-bottom:14px;font-size:15px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Todas as fotos</h3>
+    <div class="light-table"><div class="photo-grid" id="detailPhotoGrid"></div></div>
+  </section>
+
+  <!-- CREATE EVENT -->
+  <section class="view" id="view-event-form">
+    <button class="back-link" data-back="view-dashboard">‹ Voltar ao painel</button>
+    <div class="panel">
+      <h2 style="font-size:22px;margin-bottom:6px;">Novo evento com busca facial</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:22px;">Suba todas as fotos do evento. Você compartilha um link público — cada pessoa envia uma selfie e encontra só as fotos em que aparece, sem precisar de código.</p>
+      <div class="field"><label>Título do evento</label><input type="text" id="eTitle" placeholder="Ex: Torneio de Futsal — Final"></div>
+      <div class="field"><label>Descrição (opcional)</label><textarea id="eDesc" rows="2" placeholder="Ex: Fotos do dia 20/07 na quadra municipal"></textarea></div>
+      <div class="error-text" id="eCreateError"></div>
+      <button class="btn" id="createEventBtn" style="margin-top:6px;">Criar evento</button>
+
+      <div id="ePhotoUploadBlock" style="display:none;margin-top:30px;border-top:1px solid var(--line);padding-top:26px;">
+        <div class="field">
+          <label>Fotos do evento</label>
+          <div class="dropzone" id="eDropzone"><strong>Clique para escolher fotos</strong> ou arraste os arquivos aqui.<br><span style="font-size:12px;">Cada foto passa pelo reconhecimento facial no envio — pode levar alguns segundos por foto.</span></div>
+          <input type="file" id="eFileInput" accept="image/*" multiple style="display:none;">
+          <div class="progress-line" id="eUploadProgress" style="display:none;"></div>
+          <div class="thumb-grid" id="eThumbGrid"></div>
+        </div>
+        <button class="btn secondary" id="eDoneBtn">Concluir e ver evento</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENT DETAIL (photographer) -->
+  <section class="view" id="view-event-detail">
+    <button class="back-link" data-back="view-dashboard">‹ Voltar ao painel</button>
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">EVENTO</div>
+        <h2 id="eDetailTitle" style="font-size:26px;"></h2>
+      </div>
+      <button class="btn danger small" id="deleteEventBtn">Excluir evento</button>
+    </div>
+    <div class="code-box">
+      <div><div class="lbl">Link público — sem código, qualquer pessoa pode entrar</div><div class="code" id="eDetailLink"></div></div>
+      <button class="btn secondary small" id="copyEventLinkBtn">Copiar link</button>
+    </div>
+    <div class="info-strip">
+      <div class="item"><div class="lbl">Fotos no evento</div><div class="val" id="eStatTotal">0</div></div>
+      <div class="item"><div class="lbl">Rostos identificados</div><div class="val" id="eStatFaces">0</div></div>
+    </div>
+    <div style="margin-top:26px;">
+      <input type="file" id="eDetailFileInput" accept="image/*" multiple style="display:none;">
+      <button class="btn secondary small" id="eDetailAddPhotosBtn">+ Adicionar mais fotos</button>
+      <div class="progress-line" id="eDetailUploadProgress" style="display:none;"></div>
+    </div>
+    <h3 style="margin-top:28px;margin-bottom:14px;font-size:15px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Todas as fotos</h3>
+    <div class="light-table"><div class="photo-grid" id="eDetailPhotoGrid"></div></div>
+  </section>
+
+  <!-- CLIENT ENTRY (gallery code) -->
+  <section class="view" id="view-client-entry">
+    <button class="back-link" data-back="view-home">‹ Voltar</button>
+    <div class="center-wrap">
+      <div class="eyebrow">CÓDIGO DA GALERIA</div>
+      <h2 style="font-size:24px;margin-bottom:18px;">Digite o código que você recebeu</h2>
+      <form id="clientEntryForm">
+        <input type="text" class="code-input" id="clientCodeInput" placeholder="EX: REV-4F7K2" maxlength="12">
+        <button class="btn" type="submit" style="width:100%;justify-content:center;margin-top:16px;">Abrir galeria</button>
+      </form>
+      <div class="error-text" id="clientEntryError"></div>
+    </div>
+  </section>
+
+  <!-- CLIENT GALLERY -->
+  <section class="view" id="view-client-gallery">
+    <button class="back-link" data-back="view-client-entry">‹ Usar outro código</button>
+    <div class="light-table">
+      <div class="lt-header">
+        <div><h2 id="cgTitle"></h2><div class="sub" id="cgClientName"></div></div>
+        <div class="sub" id="cgFreeInfo"></div>
+      </div>
+      <div class="photo-grid" id="cgPhotoGrid"></div>
+    </div>
+    <div class="selection-bar">
+      <div>
+        <div class="counter"><span class="big" id="cgSelectedCount">0</span><span class="of" id="cgOfCount"> / 0 incluídas</span></div>
+        <div class="cost-line zero" id="cgCostLine">Nenhuma foto extra até agora.</div>
+      </div>
+      <button class="btn" id="cgConfirmBtn">Confirmar seleção</button>
+    </div>
+  </section>
+
+  <!-- CLIENT CONFIRMED -->
+  <section class="view" id="view-client-confirmed">
+    <div class="center-wrap">
+      <svg class="confirm-mark" viewBox="0 0 100 100" fill="none">
+        <path d="M50,10 C70,8 92,24 92,48 C93,71 77,91 51,92 C27,94 8,75 8,50 C7,27 27,9 50,10 Z" stroke="#E0472B" stroke-width="4" stroke-linecap="round"/>
+        <path d="M32,52 L45,65 L70,36" stroke="#E0472B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <h2 style="font-size:22px;">Seleção enviada</h2>
+      <p style="color:var(--text-dim);margin-top:10px;line-height:1.6;">Seu fotógrafo já pode ver as fotos escolhidas e o valor de extras, se houver.</p>
+      <div id="confirmedSummary" style="margin-top:22px;"></div>
+      <button class="btn secondary" style="margin-top:22px;" data-back="view-home">Concluir</button>
+    </div>
+  </section>
+
+  <!-- CLIENT EVENT (public, no code — selfie search) -->
+  <section class="view" id="view-client-event">
+    <button class="back-link" data-back="view-home">‹ Voltar</button>
+    <div class="center-wrap" style="max-width:560px;">
+      <div class="eyebrow">BUSCA POR RECONHECIMENTO FACIAL</div>
+      <h2 id="ceTitle" style="font-size:24px;"></h2>
+      <p id="ceDesc" style="color:var(--text-dim);margin:10px 0 24px;line-height:1.6;"></p>
+      <div class="selfie-box">
+        <img id="selfiePreviewImg" class="selfie-preview" style="display:none;">
+        <p style="margin:0 0 16px;color:var(--text-dim);font-size:13px;">Envie uma selfie sua, de frente e com boa iluminação.</p>
+        <input type="file" id="selfieInput" accept="image/*" capture="user" style="display:none;">
+        <button class="btn" id="selfieChooseBtn">Escolher/tirar selfie</button>
+        <div style="margin-top:14px;">
+          <button class="btn secondary small" id="selfieSearchBtn" style="display:none;">Encontrar minhas fotos</button>
+        </div>
+        <div class="error-text" id="selfieError"></div>
+      </div>
+    </div>
+    <div id="ceResultsWrap" style="margin-top:30px;display:none;">
+      <h3 style="margin-bottom:14px;font-size:15px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;" id="ceResultsHeading"></h3>
+      <div class="light-table"><div class="photo-grid" id="ceResultsGrid"></div></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="disclaimer">
+  Toda foto exibida aqui é uma pré-visualização em baixa resolução com marca d'água. Os arquivos originais em alta resolução ficam com o fotógrafo.
+</footer>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const TOKEN_KEY = "revela_token";
+  const NAME_KEY = "revela_name";
+
+  /* ---------------- api helper ---------------- */
+  async function api(path, {method="GET", json=null, form=null, auth=false} = {}){
+    const headers = {};
+    let body = null;
+    if(json){ headers["Content-Type"] = "application/json"; body = JSON.stringify(json); }
+    if(form){ body = form; }
+    if(auth){
+      const token = localStorage.getItem(TOKEN_KEY);
+      if(token) headers["Authorization"] = "Bearer " + token;
+    }
+    const res = await fetch(path, {method, headers, body});
+    let data = null;
+    try{ data = await res.json(); }catch(e){ /* sem corpo json */ }
+    if(!res.ok){
+      const msg = (data && data.detail) ? data.detail : ("Erro " + res.status);
+      if(res.status === 401 && auth){ logout(false); }
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function money(n){ return "R$ " + Number(n||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function esc(s){ const d=document.createElement('div'); d.textContent = s==null?"":String(s); return d.innerHTML; }
+  let toastTimer;
+  function toast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove('show'), 2800);
+  }
+  function markSvg(){
+    return `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50,6 C74,4 96,23 97,49 C98,74 78,94 51,96 C25,98 4,77 4,50 C3,25 24,8 50,6 Z" stroke="#E0472B" stroke-width="3.5" stroke-linecap="round"/>
+    </svg>`;
+  }
+
+  /* ---------------- state ---------------- */
+  let state = {
+    photographer: null,          // {name}
+    currentGalleryId: null,
+    currentEventId: null,
+    clientGallery: null,
+    clientSelected: new Set(),
+    clientEventSlug: null,
+    selfieFile: null
+  };
+
+  /* ---------------- routing ---------------- */
+  function showView(id){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+    renderTopNav();
+  }
+  document.querySelectorAll('[data-back]').forEach(btn=>{
+    btn.addEventListener('click', ()=> showView(btn.getAttribute('data-back')));
+  });
+  document.getElementById('homeLink').addEventListener('click', ()=> { history.pushState({}, "", "/"); showView('view-home'); });
+
+  function renderTopNav(){
+    const nav = document.getElementById('topNav');
+    nav.innerHTML = "";
+    if(state.photographer){
+      const span = document.createElement('span');
+      span.textContent = state.photographer.name;
+      span.style.marginRight = "4px";
+      const out = document.createElement('button');
+      out.textContent = "Sair";
+      out.addEventListener('click', ()=> logout(true));
+      nav.appendChild(span);
+      nav.appendChild(out);
+    }
+  }
+  function logout(notify){
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(NAME_KEY);
+    state.photographer = null;
+    if(notify){ toast("Sessão encerrada."); showView('view-home'); history.pushState({}, "", "/"); }
+  }
+
+  /* ---------------- home ---------------- */
+  document.getElementById('goPhotographer').addEventListener('click', ()=>{
+    if(state.photographer) openDashboard(); else showView('view-photog-auth');
+  });
+  document.getElementById('goClient').addEventListener('click', ()=> showView('view-client-entry'));
+
+  /* ---------------- auth ---------------- */
+  const tabLogin = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  tabLogin.addEventListener('click', ()=>{ tabLogin.classList.add('active'); tabRegister.classList.remove('active'); loginForm.style.display='block'; registerForm.style.display='none'; });
+  tabRegister.addEventListener('click', ()=>{ tabRegister.classList.add('active'); tabLogin.classList.remove('active'); registerForm.style.display='block'; loginForm.style.display='none'; });
+
+  registerForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('registerError'); errEl.textContent = "";
+    const name = document.getElementById('regName').value.trim();
+    const username = document.getElementById('regUser').value.trim();
+    const password = document.getElementById('regPass').value;
+    if(!name || !username || password.length < 6){ errEl.textContent = "Preencha nome, usuário e uma senha com 6+ caracteres."; return; }
+    try{
+      const data = await api('/auth/register', {method:'POST', json:{name, username, password}});
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+      localStorage.setItem(NAME_KEY, data.photographer_name);
+      state.photographer = {name: data.photographer_name};
+      toast("Conta criada. Bem-vindo(a)!");
+      openDashboard();
+    }catch(err){ errEl.textContent = err.message; }
+  });
+
+  loginForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('loginError'); errEl.textContent = "";
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    try{
+      const data = await api('/auth/login', {method:'POST', json:{username, password}});
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+      localStorage.setItem(NAME_KEY, data.photographer_name);
+      state.photographer = {name: data.photographer_name};
+      toast("Bem-vindo(a) de volta, " + data.photographer_name + ".");
+      openDashboard();
+    }catch(err){ errEl.textContent = err.message; }
+  });
+
+  /* ---------------- dashboard ---------------- */
+  async function openDashboard(){
+    history.pushState({}, "", "/painel");
+    showView('view-dashboard');
+    document.getElementById('dashGreeting').textContent = "PAINEL DE " + state.photographer.name.toUpperCase();
+    const list = document.getElementById('dashList');
+    list.innerHTML = "<div style='color:var(--text-dim);font-size:13px;'>Carregando…</div>";
+    try{
+      const [galleries, events] = await Promise.all([
+        api('/galleries', {auth:true}),
+        api('/events', {auth:true})
+      ]);
+      if(galleries.length === 0 && events.length === 0){
+        list.innerHTML = "<div class='empty-state'><h3>Nada por aqui ainda</h3>Crie uma galeria de seleção ou um evento com busca facial.</div>";
+        return;
+      }
+      list.innerHTML = "";
+      const combined = [
+        ...galleries.map(g=>({type:'gallery', data:g, created_at:g.created_at})),
+        ...events.map(e=>({type:'event', data:e, created_at:e.created_at}))
+      ].sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+
+      for(const entry of combined){
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        if(entry.type === 'gallery'){
+          const g = entry.data;
+          const thumb = g.photos[0] ? g.photos[0].preview_url : "";
+          row.innerHTML = `
+            <img class="thumb" src="${thumb}" alt="">
+            <div class="meta"><h4>${esc(g.title)}</h4><span>${esc(g.client_name)} · ${g.photos.length} fotos · ${esc(g.code)}</span></div>
+            <span class="badge waiting">Galeria</span>`;
+          row.addEventListener('click', ()=> openGalleryDetail(g.id));
+        } else {
+          const ev = entry.data;
+          row.innerHTML = `
+            <div class="thumb" style="display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-size:10px;color:var(--text-dim);">${ev.photo_count}</div>
+            <div class="meta"><h4>${esc(ev.title)}</h4><span>${ev.photo_count} fotos · /e/${esc(ev.slug)}</span></div>
+            <span class="badge event">Evento facial</span>`;
+          row.addEventListener('click', ()=> openEventDetail(ev.id));
+        }
+        list.appendChild(row);
+      }
+    }catch(err){
+      list.innerHTML = "<div class='error-text'>" + esc(err.message) + "</div>";
+    }
+  }
+  document.getElementById('newGalleryBtn').addEventListener('click', ()=> openGalleryForm());
+  document.getElementById('newEventBtn').addEventListener('click', ()=> openEventForm());
+
+  /* ================= GALLERY (seleção) ================= */
+  function openGalleryForm(){
+    document.getElementById('gTitle').value = "";
+    document.getElementById('gClient').value = "";
+    document.getElementById('gFree').value = 20;
+    document.getElementById('gExtra').value = "15.00";
+    document.getElementById('gCreateError').textContent = "";
+    document.getElementById('gPhotoUploadBlock').style.display = 'none';
+    document.getElementById('gThumbGrid').innerHTML = "";
+    document.getElementById('createGalleryBtn').style.display = 'inline-flex';
+    state.currentGalleryId = null;
+    showView('view-gallery-form');
+  }
+
+  document.getElementById('createGalleryBtn').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('gCreateError'); errEl.textContent = "";
+    const title = document.getElementById('gTitle').value.trim();
+    const client_name = document.getElementById('gClient').value.trim();
+    const free_count = parseInt(document.getElementById('gFree').value, 10);
+    const extra_price = parseFloat(document.getElementById('gExtra').value);
+    if(!title || !client_name){ errEl.textContent = "Preencha o título e o nome do cliente."; return; }
+    if(isNaN(free_count) || free_count < 0){ errEl.textContent = "Quantidade inclusa inválida."; return; }
+    if(isNaN(extra_price) || extra_price < 0){ errEl.textContent = "Valor da extra inválido."; return; }
+    try{
+      const g = await api('/galleries', {method:'POST', auth:true, json:{title, client_name, free_count, extra_price}});
+      state.currentGalleryId = g.id;
+      document.getElementById('createGalleryBtn').style.display = 'none';
+      document.getElementById('gPhotoUploadBlock').style.display = 'block';
+      toast("Galeria criada. Agora adicione as fotos.");
+    }catch(err){ errEl.textContent = err.message; }
+  });
+
+  setupDropzone('gDropzone', 'gFileInput', (files)=> uploadGalleryPhotos(files, 'gUploadProgress', 'gThumbGrid'));
+
+  async function uploadGalleryPhotos(files, progressId, gridId){
+    const progEl = document.getElementById(progressId);
+    const grid = document.getElementById(gridId);
+    progEl.style.display = 'block';
+    for(let i=0;i<files.length;i++){
+      progEl.textContent = `Enviando foto ${i+1} de ${files.length}…`;
+      const cell = document.createElement('div');
+      cell.className = 'thumb-item';
+      cell.innerHTML = `<img src="${URL.createObjectURL(files[i])}"><span class="status">enviando…</span>`;
+      grid.appendChild(cell);
+      try{
+        const form = new FormData();
+        form.append('files', files[i]);
+        await api(`/galleries/${state.currentGalleryId}/photos`, {method:'POST', auth:true, form});
+        cell.querySelector('.status').textContent = 'enviada';
+        cell.querySelector('.status').classList.add('ok');
+      }catch(err){
+        cell.querySelector('.status').textContent = 'erro';
+        toast("Falha ao enviar uma foto: " + err.message);
+      }
+    }
+    progEl.style.display = 'none';
+  }
+
+  document.getElementById('gDoneBtn').addEventListener('click', ()=> openGalleryDetail(state.currentGalleryId));
+
+  async function openGalleryDetail(galleryId){
+    state.currentGalleryId = galleryId;
+    showView('view-gallery-detail');
+    const grid = document.getElementById('detailPhotoGrid');
+    grid.innerHTML = "<div style='color:var(--ink-text-dim);'>Carregando…</div>";
+    try{
+      const g = await api(`/galleries/${galleryId}`, {auth:true});
+      document.getElementById('detailClient').textContent = "GALERIA DE " + g.client_name.toUpperCase();
+      document.getElementById('detailTitle').textContent = g.title;
+      const link = `${location.origin}/g/${g.code}`;
+      document.getElementById('detailLink').textContent = link;
+      document.getElementById('detailLink').dataset.link = link;
+      document.getElementById('statTotalPhotos').textContent = g.photos.length;
+      document.getElementById('statFree').textContent = g.free_count;
+      document.getElementById('statExtraPrice').textContent = money(g.extra_price);
+
+      let sel = null;
+      try{ sel = await api(`/galleries/${galleryId}/selection`, {auth:true}); }catch(e){}
+      const statusEl = document.getElementById('statStatus');
+      const summaryEl = document.getElementById('selectionSummary');
+      const selectedSet = new Set(sel ? sel.selected_photo_ids : []);
+      if(sel && sel.confirmed_at){
+        statusEl.innerHTML = "<span class='badge confirmed'>Confirmado</span>";
+        summaryEl.innerHTML = `<div class="info-strip">
+          <div class="item"><div class="lbl">Fotos escolhidas</div><div class="val">${sel.selected_photo_ids.length}</div></div>
+          <div class="item"><div class="lbl">Fotos extras</div><div class="val">${sel.extra_count}</div></div>
+          <div class="item"><div class="lbl">Valor adicional</div><div class="val">${money(sel.extra_cost)}</div></div>
+        </div>`;
+      } else {
+        statusEl.innerHTML = "<span class='badge empty'>Aguardando cliente</span>";
+        summaryEl.innerHTML = "";
+      }
+
+      grid.innerHTML = "";
+      g.photos.forEach((p, i)=>{
+        const cell = document.createElement('div');
+        cell.className = 'photo-cell readonly' + (selectedSet.has(p.id) ? ' selected' : (sel ? ' not-picked' : ''));
+        cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div></div><div class="idx">${String(i+1).padStart(2,'0')}</div>`;
+        grid.appendChild(cell);
+      });
+    }catch(err){
+      toast(err.message); showView('view-dashboard');
+    }
+  }
+
+  document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
+    const link = document.getElementById('detailLink').dataset.link;
+    try{ await navigator.clipboard.writeText(link); toast("Link copiado."); }
+    catch(e){ toast("Copie manualmente: " + link); }
+  });
+
+  document.getElementById('deleteGalleryBtn').addEventListener('click', async ()=>{
+    if(!confirm("Excluir esta galeria e todas as fotos? Essa ação não pode ser desfeita.")) return;
+    try{
+      await api(`/galleries/${state.currentGalleryId}`, {method:'DELETE', auth:true});
+      toast("Galeria excluída.");
+      openDashboard();
+    }catch(err){ toast(err.message); }
+  });
+
+  document.getElementById('gDetailAddPhotosBtn').addEventListener('click', ()=> document.getElementById('gDetailFileInput').click());
+  document.getElementById('gDetailFileInput').addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files).filter(f=>f.type.startsWith('image/'));
+    if(files.length===0) return;
+    const progEl = document.getElementById('gDetailUploadProgress');
+    progEl.style.display = 'block';
+    for(let i=0;i<files.length;i++){
+      progEl.textContent = `Enviando foto ${i+1} de ${files.length}…`;
+      const form = new FormData(); form.append('files', files[i]);
+      try{ await api(`/galleries/${state.currentGalleryId}/photos`, {method:'POST', auth:true, form}); }
+      catch(err){ toast("Falha ao enviar: " + err.message); }
+    }
+    progEl.style.display = 'none';
+    e.target.value = "";
+    openGalleryDetail(state.currentGalleryId);
+  });
+
+  /* ================= EVENT (busca facial) ================= */
+  function openEventForm(){
+    document.getElementById('eTitle').value = "";
+    document.getElementById('eDesc').value = "";
+    document.getElementById('eCreateError').textContent = "";
+    document.getElementById('ePhotoUploadBlock').style.display = 'none';
+    document.getElementById('eThumbGrid').innerHTML = "";
+    document.getElementById('createEventBtn').style.display = 'inline-flex';
+    state.currentEventId = null;
+    showView('view-event-form');
+  }
+
+  document.getElementById('createEventBtn').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('eCreateError'); errEl.textContent = "";
+    const title = document.getElementById('eTitle').value.trim();
+    const description = document.getElementById('eDesc').value.trim();
+    if(!title){ errEl.textContent = "Dê um título para o evento."; return; }
+    try{
+      const ev = await api('/events', {method:'POST', auth:true, json:{title, description}});
+      state.currentEventId = ev.id;
+      document.getElementById('createEventBtn').style.display = 'none';
+      document.getElementById('ePhotoUploadBlock').style.display = 'block';
+      toast("Evento criado. Agora suba as fotos.");
+    }catch(err){ errEl.textContent = err.message; }
+  });
+
+  setupDropzone('eDropzone', 'eFileInput', (files)=> uploadEventPhotos(files, 'eUploadProgress', 'eThumbGrid'));
+
+  async function uploadEventPhotos(files, progressId, gridId){
+    const progEl = document.getElementById(progressId);
+    const grid = document.getElementById(gridId);
+    progEl.style.display = 'block';
+    for(let i=0;i<files.length;i++){
+      progEl.textContent = `Enviando e processando foto ${i+1} de ${files.length}… (o reconhecimento facial roda no envio)`;
+      const cell = document.createElement('div');
+      cell.className = 'thumb-item';
+      cell.innerHTML = `<img src="${URL.createObjectURL(files[i])}"><span class="status">processando…</span>`;
+      grid.appendChild(cell);
+      try{
+        const form = new FormData();
+        form.append('files', files[i]);
+        const ev = await api(`/events/${state.currentEventId}/photos`, {method:'POST', auth:true, form});
+        const last = ev.photos[ev.photos.length-1];
+        cell.querySelector('.status').textContent = last ? `${last.face_count} rosto(s)` : 'ok';
+        cell.querySelector('.status').classList.add('ok');
+      }catch(err){
+        cell.querySelector('.status').textContent = 'erro';
+        toast("Falha ao enviar uma foto: " + err.message);
+      }
+    }
+    progEl.style.display = 'none';
+  }
+
+  document.getElementById('eDoneBtn').addEventListener('click', ()=> openEventDetail(state.currentEventId));
+
+  async function openEventDetail(eventId){
+    state.currentEventId = eventId;
+    showView('view-event-detail');
+    const grid = document.getElementById('eDetailPhotoGrid');
+    grid.innerHTML = "<div style='color:var(--ink-text-dim);'>Carregando…</div>";
+    try{
+      const ev = await api(`/events/${eventId}`, {auth:true});
+      document.getElementById('eDetailTitle').textContent = ev.title;
+      const link = `${location.origin}/e/${ev.slug}`;
+      document.getElementById('eDetailLink').textContent = link;
+      document.getElementById('eDetailLink').dataset.link = link;
+      document.getElementById('eStatTotal').textContent = ev.photos.length;
+      document.getElementById('eStatFaces').textContent = ev.photos.reduce((sum,p)=> sum + p.face_count, 0);
+
+      grid.innerHTML = "";
+      ev.photos.forEach((p, i)=>{
+        const cell = document.createElement('div');
+        cell.className = 'photo-cell readonly';
+        cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"></div><div class="idx">${p.face_count} rosto(s)</div>`;
+        grid.appendChild(cell);
+      });
+    }catch(err){ toast(err.message); showView('view-dashboard'); }
+  }
+
+  document.getElementById('copyEventLinkBtn').addEventListener('click', async ()=>{
+    const link = document.getElementById('eDetailLink').dataset.link;
+    try{ await navigator.clipboard.writeText(link); toast("Link copiado."); }
+    catch(e){ toast("Copie manualmente: " + link); }
+  });
+
+  document.getElementById('deleteEventBtn').addEventListener('click', async ()=>{
+    if(!confirm("Excluir este evento e todas as fotos? Essa ação não pode ser desfeita.")) return;
+    try{
+      await api(`/events/${state.currentEventId}`, {method:'DELETE', auth:true});
+      toast("Evento excluído.");
+      openDashboard();
+    }catch(err){ toast(err.message); }
+  });
+
+  document.getElementById('eDetailAddPhotosBtn').addEventListener('click', ()=> document.getElementById('eDetailFileInput').click());
+  document.getElementById('eDetailFileInput').addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files).filter(f=>f.type.startsWith('image/'));
+    if(files.length===0) return;
+    const progEl = document.getElementById('eDetailUploadProgress');
+    progEl.style.display = 'block';
+    for(let i=0;i<files.length;i++){
+      progEl.textContent = `Enviando e processando foto ${i+1} de ${files.length}…`;
+      const form = new FormData(); form.append('files', files[i]);
+      try{ await api(`/events/${state.currentEventId}/photos`, {method:'POST', auth:true, form}); }
+      catch(err){ toast("Falha ao enviar: " + err.message); }
+    }
+    progEl.style.display = 'none';
+    e.target.value = "";
+    openEventDetail(state.currentEventId);
+  });
+
+  /* ---------------- shared dropzone helper ---------------- */
+  function setupDropzone(zoneId, inputId, onFiles){
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    zone.addEventListener('click', ()=> input.click());
+    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag'); });
+    zone.addEventListener('dragleave', ()=> zone.classList.remove('drag'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault(); zone.classList.remove('drag');
+      const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+      if(files.length) onFiles(files);
+    });
+    input.addEventListener('change', ()=>{
+      const files = Array.from(input.files).filter(f=>f.type.startsWith('image/'));
+      if(files.length) onFiles(files);
+      input.value = "";
+    });
+  }
+
+  /* ================= CLIENT: gallery by code ================= */
+  document.getElementById('clientEntryForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('clientEntryError'); errEl.textContent = "";
+    const code = document.getElementById('clientCodeInput').value.trim().toUpperCase();
+    if(!code){ errEl.textContent = "Digite o código da galeria."; return; }
+    try{
+      await api(`/public/galleries/${code}`);
+      history.pushState({}, "", `/g/${code}`);
+      openClientGallery(code);
+    }catch(err){ errEl.textContent = "Código não encontrado. Confira com seu fotógrafo."; }
+  });
+
+  async function openClientGallery(code){
+    showView('view-client-gallery');
+    const grid = document.getElementById('cgPhotoGrid');
+    grid.innerHTML = "<div style='color:var(--ink-text-dim);'>Carregando fotos…</div>";
+    try{
+      const g = await api(`/public/galleries/${code}`);
+      state.clientGallery = g;
+      state.clientGallery.code = code;
+      document.getElementById('cgTitle').textContent = g.title;
+      document.getElementById('cgClientName').textContent = "Para " + g.client_name;
+      document.getElementById('cgFreeInfo').textContent = g.free_count + " fotos incluídas · +" + money(g.extra_price) + " por foto extra";
+
+      let sel = null;
+      try{ sel = await api(`/galleries/${g.id}/selection`); }catch(e){}
+      state.clientSelected = new Set();
+
+      grid.innerHTML = "";
+      g.photos.forEach((p, i)=>{
+        const cell = document.createElement('div');
+        cell.className = 'photo-cell';
+        cell.dataset.pid = p.id;
+        cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div></div><div class="idx">${String(i+1).padStart(2,'0')}</div>`;
+        cell.addEventListener('click', ()=>{
+          if(state.clientSelected.has(p.id)){ state.clientSelected.delete(p.id); cell.classList.remove('selected'); }
+          else { state.clientSelected.add(p.id); cell.classList.add('selected'); }
+          updateClientCounter();
+        });
+        grid.appendChild(cell);
+      });
+      updateClientCounter();
+    }catch(err){ toast(err.message); }
+  }
+
+  function updateClientCounter(){
+    const g = state.clientGallery;
+    const count = state.clientSelected.size;
+    document.getElementById('cgSelectedCount').textContent = count;
+    document.getElementById('cgOfCount').textContent = " / " + g.free_count + " incluídas";
+    const costEl = document.getElementById('cgCostLine');
+    const extraCount = Math.max(0, count - g.free_count);
+    if(extraCount > 0){
+      const cost = extraCount * g.extra_price;
+      costEl.className = 'cost-line';
+      costEl.textContent = `+${extraCount} foto${extraCount>1?'s':''} extra${extraCount>1?'s':''} × ${money(g.extra_price)} = ${money(cost)} adicional`;
+    } else {
+      costEl.className = 'cost-line zero';
+      costEl.textContent = count === 0 ? "Nenhuma foto selecionada ainda." : "Dentro do pacote incluído — sem custo adicional.";
+    }
+  }
+
+  document.getElementById('cgConfirmBtn').addEventListener('click', async ()=>{
+    const g = state.clientGallery;
+    if(state.clientSelected.size === 0){ if(!confirm("Nenhuma foto selecionada. Confirmar mesmo assim?")) return; }
+    const btn = document.getElementById('cgConfirmBtn');
+    btn.disabled = true; btn.innerHTML = "<span class='spinner'></span>";
+    try{
+      const result = await api(`/public/galleries/${g.code}/selection`, {method:'POST', json:{selected_photo_ids: Array.from(state.clientSelected)}});
+      document.getElementById('confirmedSummary').innerHTML = `<div class="info-strip" style="justify-content:center;">
+        <div class="item"><div class="lbl">Fotos escolhidas</div><div class="val">${result.selected_photo_ids.length}</div></div>
+        <div class="item"><div class="lbl">Fotos extras</div><div class="val">${result.extra_count}</div></div>
+        <div class="item"><div class="lbl">Valor adicional</div><div class="val">${money(result.extra_cost)}</div></div>
+      </div>`;
+      showView('view-client-confirmed');
+    }catch(err){ toast(err.message); }
+    btn.disabled = false; btn.textContent = "Confirmar seleção";
+  });
+
+  /* ================= CLIENT: event by link (busca facial) ================= */
+  async function openClientEvent(slug){
+    state.clientEventSlug = slug;
+    showView('view-client-event');
+    document.getElementById('ceResultsWrap').style.display = 'none';
+    document.getElementById('selfiePreviewImg').style.display = 'none';
+    document.getElementById('selfieSearchBtn').style.display = 'none';
+    document.getElementById('selfieError').textContent = "";
+    state.selfieFile = null;
+    try{
+      const ev = await api(`/public/events/${slug}`);
+      document.getElementById('ceTitle').textContent = ev.title;
+      document.getElementById('ceDesc').textContent = ev.description || `${ev.photo_count} fotos neste evento.`;
+    }catch(err){
+      toast("Evento não encontrado.");
+      showView('view-home');
+    }
+  }
+
+  document.getElementById('selfieChooseBtn').addEventListener('click', ()=> document.getElementById('selfieInput').click());
+  document.getElementById('selfieInput').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    state.selfieFile = file;
+    const img = document.getElementById('selfiePreviewImg');
+    img.src = URL.createObjectURL(file);
+    img.style.display = 'block';
+    document.getElementById('selfieSearchBtn').style.display = 'inline-flex';
+    document.getElementById('selfieError').textContent = "";
+  });
+
+  document.getElementById('selfieSearchBtn').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('selfieError'); errEl.textContent = "";
+    const btn = document.getElementById('selfieSearchBtn');
+    btn.disabled = true; btn.innerHTML = "<span class='spinner'></span> Procurando…";
+    try{
+      const form = new FormData();
+      form.append('selfie', state.selfieFile);
+      const matches = await api(`/public/events/${state.clientEventSlug}/search`, {method:'POST', form});
+      const wrap = document.getElementById('ceResultsWrap');
+      const grid = document.getElementById('ceResultsGrid');
+      const heading = document.getElementById('ceResultsHeading');
+      grid.innerHTML = "";
+      if(matches.length === 0){
+        heading.textContent = "Nenhuma foto encontrada com essa selfie.";
+      } else {
+        heading.textContent = `${matches.length} foto${matches.length>1?'s':''} encontrada${matches.length>1?'s':''}`;
+        matches.forEach(m=>{
+          const cell = document.createElement('div');
+          cell.className = 'photo-cell readonly';
+          cell.innerHTML = `<div class="frame"><img src="${m.preview_url}"><div class="confidence">${m.confidence}%</div></div>`;
+          grid.appendChild(cell);
+        });
+      }
+      wrap.style.display = 'block';
+      wrap.scrollIntoView({behavior:'smooth', block:'start'});
+    }catch(err){
+      errEl.textContent = err.message;
+    }
+    btn.disabled = false; btn.textContent = "Encontrar minhas fotos";
+  });
+
+  /* ---------------- boot / initial routing ---------------- */
+  async function boot(){
+    const token = localStorage.getItem(TOKEN_KEY);
+    const name = localStorage.getItem(NAME_KEY);
+    if(token && name){ state.photographer = {name}; }
+
+    const path = window.location.pathname;
+    if(path.startsWith('/e/')){
+      openClientEvent(path.slice(3));
+      return;
+    }
+    if(path.startsWith('/g/')){
+      const code = path.slice(3).toUpperCase();
+      try{ await api(`/public/galleries/${code}`); openClientGallery(code); }
+      catch(e){ showView('view-home'); }
+      return;
+    }
+    if(path === '/painel' && state.photographer){
+      openDashboard();
+      return;
+    }
+    showView('view-home');
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
