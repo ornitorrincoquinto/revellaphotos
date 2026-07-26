@@ -649,7 +649,7 @@
   const NAME_KEY = "revela_name";
 
   /* ---------------- api helper ---------------- */
-  async function api(path, {method="GET", json=null, form=null, auth=false} = {}){
+  async function api(path, {method="GET", json=null, form=null, auth=false, adminAuth=false} = {}){
     const headers = {};
     let body = null;
     if(json){ headers["Content-Type"] = "application/json"; body = JSON.stringify(json); }
@@ -658,12 +658,17 @@
       const token = localStorage.getItem(TOKEN_KEY);
       if(token) headers["Authorization"] = "Bearer " + token;
     }
+    if(adminAuth){
+      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+      if(token) headers["Authorization"] = "Bearer " + token;
+    }
     const res = await fetch(path, {method, headers, body});
     let data = null;
     try{ data = await res.json(); }catch(e){ /* sem corpo json */ }
     if(!res.ok){
       const msg = (data && data.detail) ? data.detail : ("Erro " + res.status);
       if(res.status === 401 && auth){ logout(false); }
+      if(res.status === 401 && adminAuth){ adminLogout(false); }
       throw new Error(msg);
     }
     return data;
@@ -816,6 +821,12 @@
     localStorage.removeItem(NAME_KEY);
     state.photographer = null;
     if(notify){ toast("Sessão encerrada."); showView('view-home'); history.pushState({}, "", "/"); }
+  }
+  function adminLogout(notify){
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    state.adminToken = null;
+    if(notify){ toast("Sessão master encerrada."); }
+    showView('view-admin-login');
   }
 
   /* ---------------- home ---------------- */
@@ -1698,6 +1709,146 @@
       errEl.textContent = err.message;
     }
     btn.disabled = false; btn.textContent = "Encontrar minhas fotos";
+  });
+
+  /* ================= ADMIN (painel master) ================= */
+  document.getElementById('adminLoginForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('adminLoginError'); errEl.textContent = "";
+    const username = document.getElementById('adminUser').value.trim();
+    const password = document.getElementById('adminPass').value;
+    try{
+      const data = await api('/admin/login', {method:'POST', json:{username, password}});
+      localStorage.setItem(ADMIN_TOKEN_KEY, data.access_token);
+      state.adminToken = data.access_token;
+      document.getElementById('adminLoginForm').reset();
+      openAdminDashboard();
+    }catch(err){ errEl.textContent = err.message; }
+  });
+  document.getElementById('adminLogoutBtn').addEventListener('click', ()=> adminLogout(true));
+
+  async function openAdminDashboard(){
+    history.pushState({}, "", "/admin");
+    showView('view-admin-dashboard');
+    const list = document.getElementById('adminList');
+    list.innerHTML = "<div style='color:var(--text-dim);font-size:13px;'>Carregando…</div>";
+    try{
+      const photographers = await api('/admin/photographers', {adminAuth:true});
+      if(photographers.length === 0){
+        list.innerHTML = "<div class='empty-state'><h3>Nenhum fotógrafo cadastrado ainda</h3></div>";
+        return;
+      }
+      list.innerHTML = "";
+      photographers.forEach(p=>{
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const badge = p.is_active ? "<span class='badge confirmed'>Ativa</span>" : "<span class='badge empty'>Desativada</span>";
+        row.innerHTML = `
+          <div class="thumb" style="display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-size:16px;">${esc((p.name||'?').charAt(0).toUpperCase())}</div>
+          <div class="meta">
+            <h4>${esc(p.name)}</h4>
+            <span>@${esc(p.username)} · ${esc(p.email||'sem e-mail')} · ${p.gallery_count} galeria(s) · ${p.event_count} evento(s)</span>
+          </div>
+          ${badge}`;
+        row.addEventListener('click', ()=> openAdminDetail(p.id));
+        list.appendChild(row);
+      });
+    }catch(err){
+      list.innerHTML = "<div class='error-text'>" + esc(err.message) + "</div>";
+    }
+  }
+
+  async function openAdminDetail(photographerId){
+    state.adminCurrentId = photographerId;
+    showView('view-admin-detail');
+    document.getElementById('adminEditError').textContent = "";
+    document.getElementById('adminEditMsg').textContent = "";
+    document.getElementById('adminGalleryList').innerHTML = "<div style='color:var(--text-dim);font-size:13px;'>Carregando…</div>";
+    document.getElementById('adminEventList').innerHTML = "";
+    try{
+      const p = await api(`/admin/photographers/${photographerId}`, {adminAuth:true});
+      document.getElementById('adminDetailName').textContent = p.name;
+      document.getElementById('adminEditName').value = p.name || "";
+      document.getElementById('adminEditUsername').value = p.username || "";
+      document.getElementById('adminEditEmail').value = p.email || "";
+      document.getElementById('adminEditPhone').value = p.phone || "";
+      document.getElementById('adminEditPixKey').value = p.pix_key || "";
+      document.getElementById('adminEditPixCity').value = p.pix_city || "";
+      document.getElementById('adminEditNewPassword').value = "";
+      document.getElementById('adminEditActive').checked = !!p.is_active;
+
+      const gList = document.getElementById('adminGalleryList');
+      gList.innerHTML = "";
+      if(p.galleries.length === 0){
+        gList.innerHTML = "<div class='empty-state'><h3>Nenhuma galeria</h3></div>";
+      }
+      p.galleries.forEach(g=>{
+        const sel = g.selection;
+        let status = "Aguardando cliente";
+        if(sel && sel.package_confirmed_at && !sel.extras_confirmed_at) status = "Pacote confirmado — escolhendo extras";
+        else if(sel && sel.extras_confirmed_at && sel.payment_status === 'aguardando_pagamento') status = "Aguardando pagamento Pix";
+        else if(sel && sel.extras_confirmed_at) status = "Concluído";
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const thumb = g.photos[0] ? g.photos[0].preview_url : "";
+        row.innerHTML = `
+          <img class="thumb" src="${thumb}" alt="">
+          <div class="meta"><h4>${esc(g.title)}</h4><span>${esc(g.client_name)} · ${g.photos.length} fotos · ${esc(g.code)} · ${status}</span></div>
+          ${g.locked ? "<span class='lock-badge'>🔒</span>" : ""}`;
+        row.addEventListener('click', ()=> openLightbox(g.photos, 0));
+        gList.appendChild(row);
+      });
+
+      const eList = document.getElementById('adminEventList');
+      eList.innerHTML = "";
+      if(p.events.length === 0){
+        eList.innerHTML = "<div class='empty-state'><h3>Nenhum evento</h3></div>";
+      }
+      p.events.forEach(ev=>{
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+          <div class="thumb" style="display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-size:10px;color:var(--text-dim);">${ev.photo_count}</div>
+          <div class="meta"><h4>${esc(ev.title)}</h4><span>${ev.photo_count} fotos · /e/${esc(ev.slug)}</span></div>`;
+        eList.appendChild(row);
+      });
+    }catch(err){
+      toast(err.message);
+      openAdminDashboard();
+    }
+  }
+
+  document.getElementById('adminSaveBtn').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('adminEditError'); errEl.textContent = "";
+    const msgEl = document.getElementById('adminEditMsg'); msgEl.textContent = "";
+    const payload = {
+      name: document.getElementById('adminEditName').value.trim(),
+      email: document.getElementById('adminEditEmail').value.trim() || null,
+      phone: document.getElementById('adminEditPhone').value.trim() || null,
+      pix_key: document.getElementById('adminEditPixKey').value.trim() || null,
+      pix_city: document.getElementById('adminEditPixCity').value.trim() || null,
+      is_active: document.getElementById('adminEditActive').checked,
+    };
+    const newPass = document.getElementById('adminEditNewPassword').value;
+    if(newPass){
+      if(newPass.length < 6){ errEl.textContent = "A nova senha precisa ter 6+ caracteres."; return; }
+      payload.new_password = newPass;
+    }
+    try{
+      await api(`/admin/photographers/${state.adminCurrentId}`, {method:'PATCH', adminAuth:true, json:payload});
+      msgEl.textContent = "Alterações salvas.";
+      document.getElementById('adminEditNewPassword').value = "";
+    }catch(err){ errEl.textContent = err.message; }
+  });
+
+  document.getElementById('adminDeleteBtn').addEventListener('click', async ()=>{
+    if(!confirm("Excluir esta conta de fotógrafo e TUDO dela (galerias, eventos, fotos)? Essa ação não pode ser desfeita.")) return;
+    if(!confirm("Tem mesmo certeza? Não tem como desfazer isso.")) return;
+    try{
+      await api(`/admin/photographers/${state.adminCurrentId}`, {method:'DELETE', adminAuth:true});
+      toast("Conta excluída.");
+      openAdminDashboard();
+    }catch(err){ toast(err.message); }
   });
 
   /* ---------------- boot / initial routing ---------------- */
