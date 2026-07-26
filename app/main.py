@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from .config import settings
 from .database import Base, engine
 from .storage import ensure_dirs
-from .routers import auth, galleries, events
+from .routers import auth, galleries, events, admin
 
 # Cria as tabelas automaticamente se ainda não existirem. Pra um projeto que
 # vai evoluir bastante, o ideal futuro é migrar para o Alembic (migrações
@@ -40,6 +40,7 @@ app.mount("/media", StaticFiles(directory=settings.media_root), name="media")
 app.include_router(auth.router)
 app.include_router(galleries.router)
 app.include_router(events.router)
+app.include_router(admin.router)
 
 
 @app.get("/health")

@@ -35,10 +35,13 @@ app/
   storage.py      # onde os arquivos são salvos e como as URLs públicas são montadas
   imaging.py      # redimensionamento + marca d'água (Pillow)
   face_engine.py  # extração e comparação de rostos (face_recognition)
+  pix.py          # monta o "Pix Copia e Cola" (BR Code) e o QR code da cobrança
+  email_utils.py  # envio do e-mail de redefinição de senha (SMTP)
   routers/
-    auth.py       # cadastro / login do fotógrafo
-    galleries.py  # fluxo de seleção com cobrança de extras
+    auth.py       # cadastro / login / perfil / recuperação de senha do fotógrafo
+    galleries.py  # fluxo de seleção: pacote travado + extras pagos via Pix
     events.py     # fluxo de evento com busca facial
+    admin.py      # painel master — login separado, gestão de todos os fotógrafos
 frontend/
   index.html      # o site inteiro (fotógrafo + cliente), fala com a API por fetch()
 ```
@@ -137,25 +140,65 @@ com SMTP.
 
 ## Importante: você já tem um banco em produção
 
-Se você já criou contas de teste antes de atualizar pra essa versão (que
-adicionou o campo `phone` e a tabela de redefinição de senha), saiba que o
-`Base.metadata.create_all()` só **cria tabelas que ainda não existem** — ele
-não altera tabelas já existentes. Ou seja, a tabela `password_reset_tokens`
-nova vai ser criada automaticamente, mas a coluna `phone` não vai aparecer
-sozinha na tabela `photographers` já existente.
+Esta versão trouxe mudanças grandes de estrutura: a tabela `selections` foi
+reorganizada (pacote e extras agora são rastreados separadamente), e a
+tabela `galleries` ganhou a coluna `lock_pin`, e `photographers` ganhou
+`is_active`, `pix_key`, `pix_city`, `phone`. O `Base.metadata.create_all()`
+só **cria tabelas que ainda não existem** — ele não altera tabelas já
+existentes nem renomeia colunas.
 
-Como isso ainda é fase de teste, o caminho mais simples é resetar o banco:
-- Se estiver no SQLite (sem `DATABASE_URL` configurada): é só remover o
-  volume/arquivo do banco e deixar recriar do zero no próximo deploy.
-- Se estiver no Postgres: rode esse comando uma vez (via algum cliente
-  Postgres, ou a aba "Query" do próprio Railway se seu plano tiver isso):
+Como isso ainda é fase de teste, o caminho mais simples continua sendo
+resetar o banco:
+- Se estiver no SQLite (sem `DATABASE_URL` configurada): remova o
+  volume/arquivo do banco e deixe recriar do zero no próximo deploy.
+- Se estiver no Postgres: rode isso uma vez (via algum cliente Postgres, ou
+  a aba de query do Railway se seu plano tiver isso) — ou simplesmente apague
+  e recrie as tabelas afetadas:
   ```sql
-  ALTER TABLE photographers ADD COLUMN phone VARCHAR;
+  DROP TABLE IF EXISTS selections;
+  ALTER TABLE galleries ADD COLUMN IF NOT EXISTS lock_pin VARCHAR;
+  ALTER TABLE photographers ADD COLUMN IF NOT EXISTS phone VARCHAR;
+  ALTER TABLE photographers ADD COLUMN IF NOT EXISTS pix_key VARCHAR;
+  ALTER TABLE photographers ADD COLUMN IF NOT EXISTS pix_city VARCHAR;
+  ALTER TABLE photographers ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
   ```
+  (a tabela `selections` é recriada automaticamente vazia no próximo deploy —
+  isso zera seleções de clientes que já existiam, o que é aceitável agora,
+  em fase de teste)
 
 Pra evoluir isso de forma mais séria (sem precisar lembrar de rodar SQL manual
 a cada mudança), o passo natural mais pra frente é adotar o Alembic
 (migrações versionadas do SQLAlchemy).
+
+## Painel master (admin)
+
+Existe um painel administrativo separado, com login próprio — não é uma
+conta de fotógrafo, é uma credencial única definida só por variável de
+ambiente (não fica em nenhuma tabela do banco).
+
+Adicione no Railway (Variables):
+
+```
+ADMIN_USERNAME=escolha_um_usuario
+ADMIN_PASSWORD=escolha_uma_senha_forte
+```
+
+Sem essas duas variáveis definidas, o login master fica bloqueado (erro 503),
+de propósito — evita alguém acessar o painel com uma senha padrão que
+ninguém trocou.
+
+Endpoints da API (o frontend do painel master ainda vai ser construído na
+próxima etapa; por enquanto dá pra testar direto pelo `/docs`):
+
+- `POST /admin/login` — `{ "username": "...", "password": "..." }` → devolve um token.
+- `GET /admin/photographers` — lista todos os fotógrafos cadastrados, com a contagem de galerias e eventos de cada um.
+- `GET /admin/photographers/{id}` — detalha um fotógrafo: dados de perfil, chave Pix, todas as galerias (com fotos e status da seleção do cliente) e todos os eventos.
+- `PATCH /admin/photographers/{id}` — edita nome, e-mail, telefone, chave Pix, ativa/desativa a conta, ou define uma nova senha.
+- `DELETE /admin/photographers/{id}` — remove a conta e tudo que ela tem (galerias, eventos, fotos).
+
+O token do admin usa o mesmo mecanismo de JWT do restante do site, mas com
+uma marcação própria (`role: admin`) — um token de fotógrafo não abre o
+painel master, e vice-versa.
 
 ## Próximos passos sugeridos
 

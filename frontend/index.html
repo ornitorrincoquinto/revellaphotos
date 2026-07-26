@@ -71,6 +71,7 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   @media (max-width:560px){.row2{grid-template-columns:1fr;}}
   .error-text{color:var(--accent);font-size:13px;margin-top:10px;}
+  .link-btn{background:none;border:none;color:var(--accent-2);font-size:13px;text-decoration:underline;padding:0;cursor:pointer;}
   .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--text-dim);font-size:12px;margin-bottom:22px;background:none;border:none;text-transform:uppercase;letter-spacing:0.06em;font-family:'IBM Plex Mono',monospace;}
   .back-link:hover{color:var(--text);}
 
@@ -183,6 +184,36 @@
   .selfie-box{border:1.5px dashed var(--line);border-radius:var(--radius);padding:30px 20px;text-align:center;background:var(--panel);}
   .selfie-preview{width:110px;height:110px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;border:2px solid var(--accent-2);}
 
+  .checkbox-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+  .checkbox-row input{width:auto;}
+  .gear-btn{
+    background:none;border:1px solid var(--line);color:var(--text-dim);width:32px;height:32px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;
+  }
+  .gear-btn:hover{border-color:var(--accent-2);color:var(--text);}
+  .lock-badge{color:var(--accent-2);font-size:11px;margin-left:6px;}
+  .pin-input{
+    width:100%;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:26px;letter-spacing:0.3em;
+    background:var(--ink-2);border:1px solid var(--line);color:var(--text);padding:14px;border-radius:var(--radius);
+  }
+  .phase-note{font-size:13px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;}
+  .package-thumb .dl-btn{
+    display:block;text-align:center;margin-top:6px;font-size:11px;color:var(--accent-2);
+    text-decoration:underline;background:none;border:none;font-family:'IBM Plex Mono',monospace;cursor:pointer;
+  }
+  .status-pill{
+    display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+    padding:6px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;
+  }
+  .status-pill.wait{background:rgba(201,162,39,0.15);color:var(--accent-2);}
+  .status-pill.ok{background:rgba(107,168,110,0.15);color:#7FC48A;}
+  .pix-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;text-align:center;}
+  .pix-box img{width:220px;height:220px;background:#fff;padding:10px;border-radius:6px;}
+  .pix-code-box{
+    background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;word-break:break-all;color:var(--text-dim);margin:14px 0;text-align:left;
+  }
+
   .confirm-mark{width:76px;margin:0 auto 20px;}
   footer.disclaimer{max-width:1080px;margin:60px auto 0;padding:0 24px 20px;color:var(--text-dim);font-size:11.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:18px;}
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
@@ -286,6 +317,41 @@
     </div>
   </section>
 
+  <!-- PROFILE / SETTINGS -->
+  <section class="view" id="view-profile">
+    <button class="back-link" data-back="view-dashboard">‹ Voltar ao painel</button>
+    <div class="panel" style="max-width:520px;margin-bottom:20px;">
+      <h2 style="font-size:20px;margin-bottom:6px;">Minha conta</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:22px;">A chave Pix cadastrada aqui é usada pra gerar o QR code de cobrança das fotos extras — o pagamento cai direto na sua conta, o sistema não retém nada.</p>
+      <form id="profileForm">
+        <div class="field"><label>Nome</label><input type="text" id="profName" required></div>
+        <div class="row2">
+          <div class="field"><label>E-mail</label><input type="email" id="profEmail" placeholder="usado pra recuperar a senha"></div>
+          <div class="field"><label>Telefone</label><input type="tel" id="profPhone"></div>
+        </div>
+        <div class="field"><label>Chave Pix</label><input type="text" id="profPixKey" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
+        <div class="field"><label>Cidade (do seu registro Pix)</label><input type="text" id="profPixCity" placeholder="Ex: Sao Paulo"></div>
+        <button class="btn" type="submit" style="width:100%;justify-content:center;">Salvar</button>
+        <div class="error-text" id="profileError"></div>
+        <div id="profileMsg" style="margin-top:10px;font-size:13px;color:var(--accent-2);"></div>
+      </form>
+    </div>
+
+    <div class="panel" style="max-width:520px;">
+      <h2 style="font-size:18px;margin-bottom:16px;">Alterar senha</h2>
+      <form id="changePasswordForm">
+        <div class="field"><label>Senha atual</label><input type="password" id="curPass" required></div>
+        <div class="row2">
+          <div class="field"><label>Nova senha</label><input type="password" id="newPass" minlength="6" required></div>
+          <div class="field"><label>Confirme a nova senha</label><input type="password" id="newPassConfirm" minlength="6" required></div>
+        </div>
+        <button class="btn secondary" type="submit" style="width:100%;justify-content:center;">Alterar senha</button>
+        <div class="error-text" id="changePasswordError"></div>
+        <div id="changePasswordMsg" style="margin-top:10px;font-size:13px;color:var(--accent-2);"></div>
+      </form>
+    </div>
+  </section>
+
   <!-- DASHBOARD -->
   <section class="view" id="view-dashboard">
     <div class="card-head">
@@ -315,6 +381,11 @@
         <div class="field"><label>Fotos incluídas no pacote</label><input type="number" id="gFree" min="0" value="20"></div>
         <div class="field"><label>Valor por foto extra (R$)</label><input type="number" id="gExtra" min="0" step="0.01" value="15.00"></div>
       </div>
+      <div class="field">
+        <label>🔒 PIN de acesso (opcional)</label>
+        <input type="text" id="gPin" maxlength="6" placeholder="6 dígitos — deixe em branco pra não travar" inputmode="numeric">
+        <div class="hint">Se preencher, o cliente vai precisar digitar esse PIN pra abrir o link da galeria. Combine esse número com o cliente por fora (WhatsApp, por exemplo).</div>
+      </div>
       <div class="error-text" id="gCreateError"></div>
       <button class="btn" id="createGalleryBtn" style="margin-top:6px;">Criar galeria</button>
 
@@ -339,25 +410,51 @@
         <div class="eyebrow" id="detailClient"></div>
         <h2 id="detailTitle" style="font-size:26px;"></h2>
       </div>
-      <button class="btn danger small" id="deleteGalleryBtn">Excluir galeria</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn secondary small" id="editGalleryBtn">Editar galeria</button>
+        <button class="btn danger small" id="deleteGalleryBtn">Excluir galeria</button>
+      </div>
     </div>
+
+    <div class="panel" id="editGalleryPanel" style="display:none;margin-bottom:20px;">
+      <div class="row2">
+        <div class="field"><label>Título</label><input type="text" id="editTitle"></div>
+        <div class="field"><label>Nome do cliente</label><input type="text" id="editClient"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Fotos incluídas no pacote</label><input type="number" id="editFree" min="0"></div>
+        <div class="field"><label>Valor por foto extra (R$)</label><input type="number" id="editExtra" min="0" step="0.01"></div>
+      </div>
+      <div class="field">
+        <label>🔒 PIN de acesso</label>
+        <input type="text" id="editPin" maxlength="6" placeholder="6 dígitos — deixe em branco pra remover o PIN" inputmode="numeric">
+      </div>
+      <div class="error-text" id="editGalleryError"></div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn" id="saveGalleryEditBtn">Salvar alterações</button>
+        <button class="btn secondary" id="cancelGalleryEditBtn">Cancelar</button>
+      </div>
+    </div>
+
     <div class="code-box">
-      <div><div class="lbl">Link para o cliente</div><div class="code" id="detailLink"></div></div>
+      <div><div class="lbl">Link para o cliente <span id="detailLockBadge"></span></div><div class="code" id="detailLink"></div></div>
       <button class="btn secondary small" id="copyLinkBtn">Copiar link</button>
     </div>
     <div class="info-strip">
       <div class="item"><div class="lbl">Fotos enviadas</div><div class="val" id="statTotalPhotos">0</div></div>
       <div class="item"><div class="lbl">Incluídas no pacote</div><div class="val" id="statFree">0</div></div>
       <div class="item"><div class="lbl">Valor da extra</div><div class="val" id="statExtraPrice">R$ 0</div></div>
-      <div class="item"><div class="lbl">Status</div><div class="val" id="statStatus" style="font-size:14px;"></div></div>
+      <div class="item"><div class="lbl">Status do pacote</div><div class="val" id="statStatus" style="font-size:14px;"></div></div>
     </div>
     <div id="selectionSummary" style="margin-top:24px;"></div>
+    <div id="paymentActionBox" style="margin-top:16px;display:none;"></div>
     <div style="margin-top:26px;">
       <input type="file" id="gDetailFileInput" accept="image/*" multiple style="display:none;">
       <button class="btn secondary small" id="gDetailAddPhotosBtn">+ Adicionar mais fotos</button>
       <div class="progress-line" id="gDetailUploadProgress" style="display:none;"></div>
     </div>
     <h3 style="margin-top:28px;margin-bottom:14px;font-size:15px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Todas as fotos</h3>
+    <p style="color:var(--text-dim);font-size:12px;margin:-8px 0 14px;">Clique numa foto pra ver maior. Use o × pra remover uma foto da galeria.</p>
     <div class="light-table"><div class="photo-grid" id="detailPhotoGrid"></div></div>
   </section>
 
@@ -426,37 +523,13 @@
     </div>
   </section>
 
-  <!-- CLIENT GALLERY -->
+  <!-- CLIENT GALLERY (conteúdo montado dinamicamente conforme a fase: PIN → pacote → extras → pagamento) -->
   <section class="view" id="view-client-gallery">
     <button class="back-link" data-back="view-client-entry">‹ Usar outro código</button>
-    <div class="light-table">
-      <div class="lt-header">
-        <div><h2 id="cgTitle"></h2><div class="sub" id="cgClientName"></div></div>
-        <div class="sub" id="cgFreeInfo"></div>
-      </div>
-      <div class="photo-grid" id="cgPhotoGrid"></div>
+    <div class="lt-header" style="color:var(--text);margin-bottom:18px;">
+      <div><h2 id="cgTitle" style="color:var(--text);"></h2><div class="sub" id="cgClientName"></div></div>
     </div>
-    <div class="selection-bar">
-      <div>
-        <div class="counter"><span class="big" id="cgSelectedCount">0</span><span class="of" id="cgOfCount"> / 0 incluídas</span></div>
-        <div class="cost-line zero" id="cgCostLine">Nenhuma foto extra até agora.</div>
-      </div>
-      <button class="btn" id="cgConfirmBtn">Confirmar seleção</button>
-    </div>
-  </section>
-
-  <!-- CLIENT CONFIRMED -->
-  <section class="view" id="view-client-confirmed">
-    <div class="center-wrap">
-      <svg class="confirm-mark" viewBox="0 0 100 100" fill="none">
-        <path d="M50,10 C70,8 92,24 92,48 C93,71 77,91 51,92 C27,94 8,75 8,50 C7,27 27,9 50,10 Z" stroke="#E0472B" stroke-width="4" stroke-linecap="round"/>
-        <path d="M32,52 L45,65 L70,36" stroke="#E0472B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
-      <h2 style="font-size:22px;">Seleção enviada</h2>
-      <p style="color:var(--text-dim);margin-top:10px;line-height:1.6;">Seu fotógrafo já pode ver as fotos escolhidas e o valor de extras, se houver.</p>
-      <div id="confirmedSummary" style="margin-top:22px;"></div>
-      <button class="btn secondary" style="margin-top:22px;" data-back="view-home">Concluir</button>
-    </div>
+    <div id="cgContent"></div>
   </section>
 
   <!-- CLIENT EVENT (public, no code — selfie search) -->
@@ -481,6 +554,72 @@
       <h3 style="margin-bottom:14px;font-size:15px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;" id="ceResultsHeading"></h3>
       <div class="light-table"><div class="photo-grid" id="ceResultsGrid"></div></div>
     </div>
+  </section>
+
+  <!-- ADMIN LOGIN (painel master — acesso separado, sem link no site) -->
+  <section class="view" id="view-admin-login">
+    <div class="auth-wrap panel">
+      <div class="eyebrow">ACESSO MASTER</div>
+      <h2 style="font-size:20px;margin-bottom:20px;">Painel administrativo</h2>
+      <form id="adminLoginForm">
+        <div class="field"><label>Usuário master</label><input type="text" id="adminUser" required></div>
+        <div class="field"><label>Senha master</label><input type="password" id="adminPass" required></div>
+        <button class="btn" type="submit" style="width:100%;justify-content:center;">Entrar</button>
+        <div class="error-text" id="adminLoginError"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ADMIN DASHBOARD -->
+  <section class="view" id="view-admin-dashboard">
+    <div class="card-head">
+      <div><div class="eyebrow">PAINEL MASTER</div><h2 style="font-size:26px;">Todos os fotógrafos</h2></div>
+      <button class="btn secondary small" id="adminLogoutBtn">Sair do painel master</button>
+    </div>
+    <div class="item-list" id="adminList"></div>
+  </section>
+
+  <!-- ADMIN PHOTOGRAPHER DETAIL -->
+  <section class="view" id="view-admin-detail">
+    <button class="back-link" data-back="view-admin-dashboard">‹ Voltar à lista</button>
+    <div class="card-head">
+      <div><div class="eyebrow">FOTÓGRAFO</div><h2 id="adminDetailName" style="font-size:26px;"></h2></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:20px;">
+      <h3 style="font-size:15px;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Editar cadastro</h3>
+      <div class="row2">
+        <div class="field"><label>Nome</label><input type="text" id="adminEditName"></div>
+        <div class="field"><label>Usuário</label><input type="text" id="adminEditUsername" disabled></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>E-mail</label><input type="email" id="adminEditEmail"></div>
+        <div class="field"><label>Telefone</label><input type="tel" id="adminEditPhone"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Chave Pix</label><input type="text" id="adminEditPixKey"></div>
+        <div class="field"><label>Cidade Pix</label><input type="text" id="adminEditPixCity"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Nova senha (opcional)</label><input type="password" id="adminEditNewPassword" placeholder="deixe em branco pra não alterar"></div>
+        <div class="field">
+          <label>Status da conta</label>
+          <div class="checkbox-row"><input type="checkbox" id="adminEditActive"><label for="adminEditActive" style="text-transform:none;font-size:13px;color:var(--text);">Conta ativa</label></div>
+        </div>
+      </div>
+      <div class="error-text" id="adminEditError"></div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn" id="adminSaveBtn">Salvar alterações</button>
+        <button class="btn danger" id="adminDeleteBtn">Excluir esta conta</button>
+      </div>
+      <div id="adminEditMsg" style="margin-top:10px;font-size:13px;color:var(--accent-2);"></div>
+    </div>
+
+    <h3 style="font-size:15px;margin-bottom:14px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Galerias de seleção</h3>
+    <div class="item-list" id="adminGalleryList" style="margin-bottom:26px;"></div>
+
+    <h3 style="font-size:15px;margin-bottom:14px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Eventos com busca facial</h3>
+    <div class="item-list" id="adminEventList"></div>
   </section>
 
 </main>
@@ -622,18 +761,26 @@
   })();
 
   /* ---------------- state ---------------- */
+  const ADMIN_TOKEN_KEY = "revela_admin_token";
   let state = {
     photographer: null,          // {name}
     currentGalleryId: null,
     currentEventId: null,
     clientGallery: null,
-    clientSelected: new Set(),
+    clientCode: null,
+    clientPin: null,
+    clientSelection: null,       // último SelectionOut recebido do servidor
+    clientSelected: new Set(),   // seleção em andamento (pacote OU extras, conforme a fase)
     clientEventSlug: null,
-    selfieFile: null
+    selfieFile: null,
+    adminToken: null,
+    adminCurrentId: null,
+    pixPollTimer: null
   };
 
   /* ---------------- routing ---------------- */
   function showView(id){
+    if(state.pixPollTimer){ clearInterval(state.pixPollTimer); state.pixPollTimer = null; }
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0,0);
@@ -651,10 +798,16 @@
       const span = document.createElement('span');
       span.textContent = state.photographer.name;
       span.style.marginRight = "4px";
+      const gear = document.createElement('button');
+      gear.className = 'gear-btn';
+      gear.title = 'Configurações da conta';
+      gear.textContent = '⚙';
+      gear.addEventListener('click', ()=> openProfile());
       const out = document.createElement('button');
       out.textContent = "Sair";
       out.addEventListener('click', ()=> logout(true));
       nav.appendChild(span);
+      nav.appendChild(gear);
       nav.appendChild(out);
     }
   }
@@ -759,6 +912,60 @@
     }catch(err){ errEl.textContent = err.message; }
   });
 
+  /* ---------------- perfil / configurações ---------------- */
+  async function openProfile(){
+    showView('view-profile');
+    document.getElementById('profileError').textContent = "";
+    document.getElementById('profileMsg').textContent = "";
+    document.getElementById('changePasswordError').textContent = "";
+    document.getElementById('changePasswordMsg').textContent = "";
+    document.getElementById('changePasswordForm').reset();
+    try{
+      const p = await api('/auth/me', {auth:true});
+      document.getElementById('profName').value = p.name || "";
+      document.getElementById('profEmail').value = p.email || "";
+      document.getElementById('profPhone').value = p.phone || "";
+      document.getElementById('profPixKey').value = p.pix_key || "";
+      document.getElementById('profPixCity').value = p.pix_city || "";
+    }catch(err){ toast(err.message); }
+  }
+
+  document.getElementById('profileForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('profileError'); errEl.textContent = "";
+    const msgEl = document.getElementById('profileMsg'); msgEl.textContent = "";
+    const payload = {
+      name: document.getElementById('profName').value.trim(),
+      email: document.getElementById('profEmail').value.trim() || null,
+      phone: document.getElementById('profPhone').value.trim() || null,
+      pix_key: document.getElementById('profPixKey').value.trim() || null,
+      pix_city: document.getElementById('profPixCity').value.trim() || null,
+    };
+    try{
+      const p = await api('/auth/me', {method:'PATCH', auth:true, json:payload});
+      state.photographer.name = p.name;
+      localStorage.setItem(NAME_KEY, p.name);
+      renderTopNav();
+      msgEl.textContent = "Dados salvos.";
+    }catch(err){ errEl.textContent = err.message; }
+  });
+
+  document.getElementById('changePasswordForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('changePasswordError'); errEl.textContent = "";
+    const msgEl = document.getElementById('changePasswordMsg'); msgEl.textContent = "";
+    const current_password = document.getElementById('curPass').value;
+    const newPass = document.getElementById('newPass').value;
+    const newPassConfirm = document.getElementById('newPassConfirm').value;
+    if(newPass.length < 6){ errEl.textContent = "A nova senha precisa ter 6+ caracteres."; return; }
+    if(newPass !== newPassConfirm){ errEl.textContent = "As senhas não coincidem."; return; }
+    try{
+      const data = await api('/auth/me/change-password', {method:'POST', auth:true, json:{current_password, new_password:newPass}});
+      msgEl.textContent = data.message;
+      e.target.reset();
+    }catch(err){ errEl.textContent = err.message; }
+  });
+
   /* ---------------- dashboard ---------------- */
   async function openDashboard(){
     history.pushState({}, "", "/painel");
@@ -829,11 +1036,13 @@
     const client_name = document.getElementById('gClient').value.trim();
     const free_count = parseInt(document.getElementById('gFree').value, 10);
     const extra_price = parseFloat(document.getElementById('gExtra').value);
+    const lock_pin = document.getElementById('gPin').value.trim();
     if(!title || !client_name){ errEl.textContent = "Preencha o título e o nome do cliente."; return; }
     if(isNaN(free_count) || free_count < 0){ errEl.textContent = "Quantidade inclusa inválida."; return; }
     if(isNaN(extra_price) || extra_price < 0){ errEl.textContent = "Valor da extra inválido."; return; }
+    if(lock_pin && !/^\d{6}$/.test(lock_pin)){ errEl.textContent = "O PIN precisa ter exatamente 6 dígitos numéricos."; return; }
     try{
-      const g = await api('/galleries', {method:'POST', auth:true, json:{title, client_name, free_count, extra_price}});
+      const g = await api('/galleries', {method:'POST', auth:true, json:{title, client_name, free_count, extra_price, lock_pin: lock_pin || null}});
       state.currentGalleryId = g.id;
       document.getElementById('createGalleryBtn').style.display = 'none';
       document.getElementById('gPhotoUploadBlock').style.display = 'block';
@@ -872,12 +1081,15 @@
   async function openGalleryDetail(galleryId){
     state.currentGalleryId = galleryId;
     showView('view-gallery-detail');
+    document.getElementById('editGalleryPanel').style.display = 'none';
     const grid = document.getElementById('detailPhotoGrid');
     grid.innerHTML = "<div style='color:var(--ink-text-dim);'>Carregando…</div>";
     try{
       const g = await api(`/galleries/${galleryId}`, {auth:true});
+      state.currentGalleryData = g;
       document.getElementById('detailClient').textContent = "GALERIA DE " + g.client_name.toUpperCase();
       document.getElementById('detailTitle').textContent = g.title;
+      document.getElementById('detailLockBadge').innerHTML = g.locked ? "<span class='lock-badge'>🔒 protegida por PIN</span>" : "";
       const link = `${location.origin}/g/${g.code}`;
       document.getElementById('detailLink').textContent = link;
       document.getElementById('detailLink').dataset.link = link;
@@ -889,25 +1101,58 @@
       try{ sel = await api(`/galleries/${galleryId}/selection`, {auth:true}); }catch(e){}
       const statusEl = document.getElementById('statStatus');
       const summaryEl = document.getElementById('selectionSummary');
-      const selectedSet = new Set(sel ? sel.selected_photo_ids : []);
-      if(sel && sel.confirmed_at){
-        statusEl.innerHTML = "<span class='badge confirmed'>Confirmado</span>";
+      const paymentBox = document.getElementById('paymentActionBox');
+      const packageSet = new Set(sel ? sel.package_photo_ids : []);
+      const extraSet = new Set(sel ? sel.extra_photo_ids : []);
+
+      if(sel && sel.package_confirmed_at){
+        statusEl.innerHTML = "<span class='badge confirmed'>Pacote confirmado</span>";
         summaryEl.innerHTML = `<div class="info-strip">
-          <div class="item"><div class="lbl">Fotos escolhidas</div><div class="val">${sel.selected_photo_ids.length}</div></div>
+          <div class="item"><div class="lbl">Fotos do pacote</div><div class="val">${sel.package_photo_ids.length}</div></div>
           <div class="item"><div class="lbl">Fotos extras</div><div class="val">${sel.extra_count}</div></div>
-          <div class="item"><div class="lbl">Valor adicional</div><div class="val">${money(sel.extra_cost)}</div></div>
+          <div class="item"><div class="lbl">Valor das extras</div><div class="val">${money(sel.extra_cost)}</div></div>
+          <div class="item"><div class="lbl">Pagamento</div><div class="val" style="font-size:13px;">${paymentLabel(sel.payment_status)}</div></div>
         </div>`;
       } else {
         statusEl.innerHTML = "<span class='badge empty'>Aguardando cliente</span>";
         summaryEl.innerHTML = "";
       }
 
+      if(sel && sel.extra_cost > 0 && sel.payment_status === 'aguardando_pagamento'){
+        paymentBox.style.display = 'block';
+        paymentBox.innerHTML = `<button class="btn" id="confirmPaymentBtn">Confirmar pagamento recebido e liberar extras</button>`;
+        document.getElementById('confirmPaymentBtn').addEventListener('click', async ()=>{
+          try{
+            await api(`/galleries/${galleryId}/selection/confirm-payment`, {method:'POST', auth:true});
+            toast("Pagamento confirmado. Fotos extras liberadas.");
+            openGalleryDetail(galleryId);
+          }catch(err){ toast(err.message); }
+        });
+      } else {
+        paymentBox.style.display = 'none';
+        paymentBox.innerHTML = "";
+      }
+
       grid.innerHTML = "";
       g.photos.forEach((p, i)=>{
+        const isPackage = packageSet.has(p.id);
+        const isExtra = extraSet.has(p.id);
+        const released = isPackage || (isExtra && sel && sel.payment_status === 'pago');
         const cell = document.createElement('div');
-        cell.className = 'photo-cell readonly' + (selectedSet.has(p.id) ? ' selected' : (sel ? ' not-picked' : ''));
-        cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div></div><div class="idx">${String(i+1).padStart(2,'0')}</div>`;
-        cell.addEventListener('click', ()=> openLightbox(g.photos, i));
+        cell.className = 'photo-cell readonly' + (isPackage ? ' selected' : (isExtra ? '' : (sel && sel.package_confirmed_at ? ' not-picked' : '')));
+        cell.innerHTML = `
+          <div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div></div>
+          <div class="idx">${String(i+1).padStart(2,'0')}${isPackage ? ' · pacote' : (isExtra ? ' · extra' : '')}</div>
+          <button type="button" class="rm" data-photo-id="${p.id}" title="Remover foto" style="position:absolute;top:4px;right:4px;">×</button>
+          ${released ? `<a class="dl-btn" href="/public/galleries/${g.code}/photos/${p.id}/download" style="position:absolute;bottom:4px;right:4px;background:rgba(20,22,26,.6);color:#fff;font-size:9px;padding:2px 6px;border-radius:2px;text-decoration:none;">baixar</a>` : ''}
+        `;
+        cell.querySelector('.frame').addEventListener('click', ()=> openLightbox(g.photos, i));
+        cell.querySelector('.rm').addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          if(!confirm("Remover esta foto da galeria?")) return;
+          try{ await api(`/galleries/${galleryId}/photos/${p.id}`, {method:'DELETE', auth:true}); openGalleryDetail(galleryId); }
+          catch(err){ toast(err.message); }
+        });
         grid.appendChild(cell);
       });
     }catch(err){
@@ -915,10 +1160,51 @@
     }
   }
 
+  function paymentLabel(status){
+    if(status === 'pago') return "<span class='status-pill ok'>Pago</span>";
+    if(status === 'aguardando_pagamento') return "<span class='status-pill wait'>Aguardando pagamento</span>";
+    return "<span class='status-pill ok'>Sem cobrança</span>";
+  }
+
   document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
     const link = document.getElementById('detailLink').dataset.link;
     try{ await navigator.clipboard.writeText(link); toast("Link copiado."); }
     catch(e){ toast("Copie manualmente: " + link); }
+  });
+
+  document.getElementById('editGalleryBtn').addEventListener('click', ()=>{
+    const g = state.currentGalleryData;
+    if(!g) return;
+    document.getElementById('editTitle').value = g.title;
+    document.getElementById('editClient').value = g.client_name;
+    document.getElementById('editFree').value = g.free_count;
+    document.getElementById('editExtra').value = g.extra_price;
+    document.getElementById('editPin').value = "";
+    document.getElementById('editPin').placeholder = g.locked ? "PIN já definido — deixe em branco pra manter" : "6 dígitos — deixe em branco pra não travar";
+    document.getElementById('editGalleryError').textContent = "";
+    document.getElementById('editGalleryPanel').style.display = 'block';
+  });
+  document.getElementById('cancelGalleryEditBtn').addEventListener('click', ()=>{
+    document.getElementById('editGalleryPanel').style.display = 'none';
+  });
+  document.getElementById('saveGalleryEditBtn').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('editGalleryError'); errEl.textContent = "";
+    const payload = {
+      title: document.getElementById('editTitle').value.trim(),
+      client_name: document.getElementById('editClient').value.trim(),
+      free_count: parseInt(document.getElementById('editFree').value, 10),
+      extra_price: parseFloat(document.getElementById('editExtra').value),
+    };
+    const pinVal = document.getElementById('editPin').value.trim();
+    if(pinVal){
+      if(!/^\d{6}$/.test(pinVal)){ errEl.textContent = "O PIN precisa ter exatamente 6 dígitos numéricos."; return; }
+      payload.lock_pin = pinVal;
+    }
+    try{
+      await api(`/galleries/${state.currentGalleryId}`, {method:'PATCH', auth:true, json:payload});
+      toast("Galeria atualizada.");
+      openGalleryDetail(state.currentGalleryId);
+    }catch(err){ errEl.textContent = err.message; }
   });
 
   document.getElementById('deleteGalleryBtn').addEventListener('click', async ()=>{
@@ -1088,89 +1374,267 @@
       await api(`/public/galleries/${code}`);
       history.pushState({}, "", `/g/${code}`);
       openClientGallery(code);
-    }catch(err){ errEl.textContent = "Código não encontrado. Confira com seu fotógrafo."; }
+    }catch(err){
+      if((err.message || '').toLowerCase().includes('pin')){
+        history.pushState({}, "", `/g/${code}`);
+        openClientGallery(code);
+      } else {
+        errEl.textContent = "Código não encontrado. Confira com seu fotógrafo.";
+      }
+    }
   });
 
-  async function openClientGallery(code){
+  function pinQuery(){
+    return state.clientPin ? `?pin=${encodeURIComponent(state.clientPin)}` : '';
+  }
+
+  async function openClientGallery(code, pin){
+    state.clientCode = code;
+    if(pin !== undefined) state.clientPin = pin;
     showView('view-client-gallery');
-    const grid = document.getElementById('cgPhotoGrid');
-    grid.innerHTML = "<div style='color:var(--ink-text-dim);'>Carregando fotos…</div>";
+    document.getElementById('cgTitle').textContent = "";
+    document.getElementById('cgClientName').textContent = "";
+    document.getElementById('cgContent').innerHTML = "<div style='color:var(--text-dim);'>Carregando…</div>";
     try{
-      const g = await api(`/public/galleries/${code}`);
+      const g = await api(`/public/galleries/${code}${pinQuery()}`);
       state.clientGallery = g;
       state.clientGallery.code = code;
       document.getElementById('cgTitle').textContent = g.title;
       document.getElementById('cgClientName').textContent = "Para " + g.client_name;
-      document.getElementById('cgFreeInfo').textContent = g.free_count + " fotos incluídas · +" + money(g.extra_price) + " por foto extra";
-
-      let sel = null;
-      try{ sel = await api(`/galleries/${g.id}/selection`); }catch(e){}
-      state.clientSelected = new Set();
-
-      grid.innerHTML = "";
-      g.photos.forEach((p, i)=>{
-        const cell = document.createElement('div');
-        cell.className = 'photo-cell';
-        cell.dataset.pid = p.id;
-        cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div><button type="button" class="select-badge" aria-label="Selecionar foto">✓</button></div><div class="idx">${String(i+1).padStart(2,'0')}</div>`;
-        cell.querySelector('.select-badge').addEventListener('click', (e)=>{
-          e.stopPropagation();
-          toggleClientSelection(p.id);
-        });
-        cell.addEventListener('click', ()=>{
-          openLightbox(g.photos, i, {
-            selectable: true,
-            selectedSet: state.clientSelected,
-            onToggle: (pid)=> toggleClientSelection(pid)
-          });
-        });
-        grid.appendChild(cell);
-      });
-      updateClientCounter();
-    }catch(err){ toast(err.message); }
-  }
-
-  function toggleClientSelection(photoId){
-    if(state.clientSelected.has(photoId)) state.clientSelected.delete(photoId);
-    else state.clientSelected.add(photoId);
-    const cell = document.querySelector(`#cgPhotoGrid .photo-cell[data-pid="${photoId}"]`);
-    if(cell) cell.classList.toggle('selected', state.clientSelected.has(photoId));
-    updateClientCounter();
-  }
-
-  function updateClientCounter(){
-    const g = state.clientGallery;
-    const count = state.clientSelected.size;
-    document.getElementById('cgSelectedCount').textContent = count;
-    document.getElementById('cgOfCount').textContent = " / " + g.free_count + " incluídas";
-    const costEl = document.getElementById('cgCostLine');
-    const extraCount = Math.max(0, count - g.free_count);
-    if(extraCount > 0){
-      const cost = extraCount * g.extra_price;
-      costEl.className = 'cost-line';
-      costEl.textContent = `+${extraCount} foto${extraCount>1?'s':''} extra${extraCount>1?'s':''} × ${money(g.extra_price)} = ${money(cost)} adicional`;
-    } else {
-      costEl.className = 'cost-line zero';
-      costEl.textContent = count === 0 ? "Nenhuma foto selecionada ainda." : "Dentro do pacote incluído — sem custo adicional.";
+      const sel = await api(`/public/galleries/${code}/selection${pinQuery()}`);
+      state.clientSelection = sel;
+      renderClientPhase();
+    }catch(err){
+      if((err.message || '').toLowerCase().includes('pin')){
+        renderPinPrompt(code);
+      } else {
+        toast(err.message);
+      }
     }
   }
 
-  document.getElementById('cgConfirmBtn').addEventListener('click', async ()=>{
-    const g = state.clientGallery;
-    if(state.clientSelected.size === 0){ if(!confirm("Nenhuma foto selecionada. Confirmar mesmo assim?")) return; }
-    const btn = document.getElementById('cgConfirmBtn');
-    btn.disabled = true; btn.innerHTML = "<span class='spinner'></span>";
-    try{
-      const result = await api(`/public/galleries/${g.code}/selection`, {method:'POST', json:{selected_photo_ids: Array.from(state.clientSelected)}});
-      document.getElementById('confirmedSummary').innerHTML = `<div class="info-strip" style="justify-content:center;">
-        <div class="item"><div class="lbl">Fotos escolhidas</div><div class="val">${result.selected_photo_ids.length}</div></div>
-        <div class="item"><div class="lbl">Fotos extras</div><div class="val">${result.extra_count}</div></div>
-        <div class="item"><div class="lbl">Valor adicional</div><div class="val">${money(result.extra_cost)}</div></div>
+  function renderPinPrompt(code){
+    document.getElementById('cgTitle').textContent = "Galeria protegida";
+    document.getElementById('cgContent').innerHTML = `
+      <div class="center-wrap" style="margin-top:6px;">
+        <p class="phase-note">🔒 Essa galeria tem um PIN de acesso de 6 dígitos. Peça esse número pro seu fotógrafo.</p>
+        <input type="text" class="pin-input" id="pinInput" maxlength="6" inputmode="numeric" placeholder="••••••">
+        <button class="btn" id="pinSubmitBtn" style="width:100%;margin-top:14px;justify-content:center;">Entrar</button>
+        <div class="error-text" id="pinError"></div>
       </div>`;
-      showView('view-client-confirmed');
+    document.getElementById('pinSubmitBtn').addEventListener('click', ()=>{
+      const val = document.getElementById('pinInput').value.trim();
+      if(!/^\d{6}$/.test(val)){ document.getElementById('pinError').textContent = "Digite os 6 dígitos do PIN."; return; }
+      openClientGallery(code, val);
+    });
+  }
+
+  function renderClientPhase(){
+    const sel = state.clientSelection;
+    if(!sel.package_confirmed_at) return renderPackagePhase();
+    if(!sel.extras_confirmed_at) return renderExtrasPhase();
+    if(sel.payment_status === 'aguardando_pagamento') return renderPaymentPhase();
+    return renderDonePhase();
+  }
+
+  /* ---- fase 1: seleção do pacote contratado ---- */
+  function renderPackagePhase(){
+    const g = state.clientGallery;
+    state.clientSelected = new Set();
+    const box = document.getElementById('cgContent');
+    box.innerHTML = `
+      <p class="phase-note">Seu pacote contratado inclui <b>${g.free_count}</b> foto(s). Marque as fotos que você quer no pacote e confirme — depois de confirmado, elas não podem mais ser trocadas.</p>
+      <div class="light-table"><div class="photo-grid" id="cgPhotoGrid"></div></div>
+      <div class="selection-bar">
+        <div><div class="counter"><span class="big" id="cgSelectedCount">0</span><span class="of"> / ${g.free_count} do pacote</span></div></div>
+        <button class="btn" id="cgConfirmPackageBtn">Confirmar seleção do pacote contratado</button>
+      </div>`;
+    const grid = document.getElementById('cgPhotoGrid');
+    g.photos.forEach((p, i)=>{
+      const cell = document.createElement('div');
+      cell.className = 'photo-cell';
+      cell.dataset.pid = p.id;
+      cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div><button type="button" class="select-badge" aria-label="Selecionar foto">✓</button></div><div class="idx">${String(i+1).padStart(2,'0')}</div>`;
+      cell.querySelector('.select-badge').addEventListener('click', (e)=>{ e.stopPropagation(); togglePackagePick(p.id); });
+      cell.addEventListener('click', ()=> openLightbox(g.photos, i, {selectable:true, selectedSet: state.clientSelected, onToggle:(pid)=>togglePackagePick(pid)}));
+      grid.appendChild(cell);
+    });
+    document.getElementById('cgConfirmPackageBtn').addEventListener('click', confirmPackageClick);
+  }
+
+  function togglePackagePick(pid){
+    const g = state.clientGallery;
+    if(state.clientSelected.has(pid)){
+      state.clientSelected.delete(pid);
+    } else {
+      if(state.clientSelected.size >= g.free_count){ toast(`Seu pacote contratado inclui só ${g.free_count} foto(s).`); return; }
+      state.clientSelected.add(pid);
+    }
+    const cell = document.querySelector(`#cgPhotoGrid .photo-cell[data-pid="${pid}"]`);
+    if(cell) cell.classList.toggle('selected', state.clientSelected.has(pid));
+    const counterEl = document.getElementById('cgSelectedCount');
+    if(counterEl) counterEl.textContent = state.clientSelected.size;
+  }
+
+  async function confirmPackageClick(){
+    const g = state.clientGallery;
+    if(state.clientSelected.size === 0){ toast("Selecione ao menos uma foto do pacote."); return; }
+    if(!confirm(`Confirmar seleção do pacote contratado? Você escolheu ${state.clientSelected.size} de ${g.free_count} foto(s). Depois de confirmado, não é possível trocar essas fotos.`)) return;
+    try{
+      const sel = await api(`/public/galleries/${g.code}/confirm-package${pinQuery()}`, {method:'POST', json:{selected_photo_ids: Array.from(state.clientSelected)}});
+      state.clientSelection = sel;
+      toast("Pacote confirmado!");
+      renderClientPhase();
     }catch(err){ toast(err.message); }
-    btn.disabled = false; btn.textContent = "Confirmar seleção";
-  });
+  }
+
+  /* ---- fase 2: fotos extras ---- */
+  function renderExtrasPhase(){
+    const g = state.clientGallery, sel = state.clientSelection;
+    const packageSet = new Set(sel.package_photo_ids);
+    const remaining = g.photos.filter(p=> !packageSet.has(p.id));
+    state.clientSelected = new Set(sel.extra_photo_ids || []);
+    const box = document.getElementById('cgContent');
+    box.innerHTML = `
+      <div class="light-table" style="margin-bottom:22px;">
+        <div class="lt-header"><h2 style="font-size:16px;">Seu pacote (confirmado)</h2></div>
+        <div class="photo-grid" id="cgPackageGrid"></div>
+      </div>
+      <p class="phase-note">Quer mais alguma foto além do pacote? Cada foto extra custa ${money(g.extra_price)}. Se não quiser nenhuma, pode confirmar sem selecionar nada.</p>
+      <div class="light-table"><div class="photo-grid" id="cgExtraGrid"></div></div>
+      <div class="selection-bar">
+        <div>
+          <div class="counter"><span class="big" id="cgExtraCount">0</span><span class="of"> foto(s) extra</span></div>
+          <div class="cost-line zero" id="cgExtraCost">Nenhuma foto extra selecionada.</div>
+        </div>
+        <button class="btn" id="cgConfirmExtrasBtn">Confirmar fotos extras</button>
+      </div>`;
+    const pkgPhotos = g.photos.filter(p=> packageSet.has(p.id));
+    const pkgGrid = document.getElementById('cgPackageGrid');
+    pkgPhotos.forEach((p,i)=>{
+      const cell = document.createElement('div');
+      cell.className = 'photo-cell readonly package-thumb';
+      cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"></div><a class="dl-btn" href="/public/galleries/${g.code}/photos/${p.id}/download${pinQuery()}">baixar</a>`;
+      cell.querySelector('.frame').addEventListener('click', ()=> openLightbox(pkgPhotos, i));
+      pkgGrid.appendChild(cell);
+    });
+    const grid = document.getElementById('cgExtraGrid');
+    remaining.forEach((p,i)=>{
+      const cell = document.createElement('div');
+      cell.className = 'photo-cell' + (state.clientSelected.has(p.id)?' selected':'');
+      cell.dataset.pid = p.id;
+      cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div><button type="button" class="select-badge" aria-label="Selecionar foto">✓</button></div><div class="idx">${String(i+1).padStart(2,'0')}</div>`;
+      cell.querySelector('.select-badge').addEventListener('click', (e)=>{ e.stopPropagation(); toggleExtraPick(p.id); });
+      cell.addEventListener('click', ()=> openLightbox(remaining, i, {selectable:true, selectedSet: state.clientSelected, onToggle:(pid)=>toggleExtraPick(pid)}));
+      grid.appendChild(cell);
+    });
+    updateExtraCounter();
+    document.getElementById('cgConfirmExtrasBtn').addEventListener('click', confirmExtrasClick);
+  }
+
+  function toggleExtraPick(pid){
+    if(state.clientSelected.has(pid)) state.clientSelected.delete(pid);
+    else state.clientSelected.add(pid);
+    const cell = document.querySelector(`#cgExtraGrid .photo-cell[data-pid="${pid}"]`);
+    if(cell) cell.classList.toggle('selected', state.clientSelected.has(pid));
+    updateExtraCounter();
+  }
+
+  function updateExtraCounter(){
+    const g = state.clientGallery;
+    const count = state.clientSelected.size;
+    const countEl = document.getElementById('cgExtraCount');
+    if(countEl) countEl.textContent = count;
+    const costEl = document.getElementById('cgExtraCost');
+    if(!costEl) return;
+    if(count > 0){
+      costEl.className = 'cost-line';
+      costEl.textContent = `${count} foto${count>1?'s':''} extra${count>1?'s':''} × ${money(g.extra_price)} = ${money(count*g.extra_price)}`;
+    } else {
+      costEl.className = 'cost-line zero';
+      costEl.textContent = "Nenhuma foto extra selecionada.";
+    }
+  }
+
+  async function confirmExtrasClick(){
+    const g = state.clientGallery;
+    const count = state.clientSelected.size;
+    const msg = count > 0 ? `Confirmar ${count} foto(s) extra por ${money(count*g.extra_price)}?` : "Confirmar sem fotos extras?";
+    if(!confirm(msg)) return;
+    try{
+      const sel = await api(`/public/galleries/${g.code}/confirm-extras${pinQuery()}`, {method:'POST', json:{selected_extra_photo_ids: Array.from(state.clientSelected)}});
+      state.clientSelection = sel;
+      renderClientPhase();
+    }catch(err){ toast(err.message); }
+  }
+
+  /* ---- fase 3: pagamento via Pix ---- */
+  async function renderPaymentPhase(){
+    const g = state.clientGallery;
+    const box = document.getElementById('cgContent');
+    box.innerHTML = `<div class="pix-box"><div style="color:var(--text-dim);">Carregando QR code Pix…</div></div>`;
+    try{
+      const qr = await api(`/public/galleries/${g.code}/pix-qrcode${pinQuery()}`);
+      box.innerHTML = `
+        <div class="pix-box">
+          <div class="status-pill wait" style="margin-bottom:16px;">Aguardando pagamento</div>
+          <h3 style="font-size:16px;margin-bottom:6px;">Pague ${money(qr.amount)} via Pix</h3>
+          <p style="color:var(--text-dim);font-size:13px;margin-bottom:16px;">Escaneie o QR code com o app do seu banco, ou copie o código abaixo.</p>
+          <img src="${qr.qr_data_uri}" alt="QR code Pix">
+          <div class="pix-code-box" id="pixCodeText">${esc(qr.payload)}</div>
+          <button class="btn secondary small" id="copyPixBtn">Copiar código Pix</button>
+          <p style="color:var(--text-dim);font-size:12px;margin-top:16px;">Depois de pagar, avise seu fotógrafo — ele confirma o recebimento e libera as fotos extras aqui mesmo.</p>
+          <button class="btn ghost" id="checkPaymentBtn" style="margin-top:6px;display:block;margin-left:auto;margin-right:auto;">Verificar novamente</button>
+          <button class="link-btn" id="editExtrasBackBtn" style="margin-top:10px;display:block;margin-left:auto;margin-right:auto;">Alterar seleção de extras</button>
+        </div>`;
+      document.getElementById('copyPixBtn').addEventListener('click', async ()=>{
+        try{ await navigator.clipboard.writeText(qr.payload); toast("Código Pix copiado."); }
+        catch(e){ toast("Selecione e copie o código manualmente."); }
+      });
+      document.getElementById('checkPaymentBtn').addEventListener('click', ()=> openClientGallery(g.code));
+      document.getElementById('editExtrasBackBtn').addEventListener('click', ()=> renderExtrasPhase());
+      if(state.pixPollTimer) clearInterval(state.pixPollTimer);
+      state.pixPollTimer = setInterval(async ()=>{
+        try{
+          const freshSel = await api(`/public/galleries/${g.code}/selection${pinQuery()}`);
+          if(freshSel.payment_status === 'pago'){
+            clearInterval(state.pixPollTimer); state.pixPollTimer = null;
+            state.clientSelection = freshSel;
+            renderClientPhase();
+          }
+        }catch(e){}
+      }, 15000);
+    }catch(err){
+      box.innerHTML = `<div class="pix-box"><p style="color:var(--text-dim);">${esc(err.message)}</p></div>`;
+    }
+  }
+
+  /* ---- fase 4: tudo liberado ---- */
+  function renderDonePhase(){
+    const g = state.clientGallery, sel = state.clientSelection;
+    const packageSet = new Set(sel.package_photo_ids);
+    const extraSet = new Set(sel.extra_photo_ids);
+    const released = g.photos.filter(p=> packageSet.has(p.id) || extraSet.has(p.id));
+    const box = document.getElementById('cgContent');
+    box.innerHTML = `
+      <div class="center-wrap" style="margin-bottom:20px;">
+        <svg class="confirm-mark" viewBox="0 0 100 100" fill="none">
+          <path d="M50,10 C70,8 92,24 92,48 C93,71 77,91 51,92 C27,94 8,75 8,50 C7,27 27,9 50,10 Z" stroke="#E0472B" stroke-width="4" stroke-linecap="round"/>
+          <path d="M32,52 L45,65 L70,36" stroke="#E0472B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <h2 style="font-size:20px;">Tudo liberado!</h2>
+        <p style="color:var(--text-dim);margin-top:8px;">Suas fotos já estão disponíveis para download abaixo.</p>
+      </div>
+      <div class="light-table"><div class="photo-grid" id="cgDoneGrid"></div></div>`;
+    const grid = document.getElementById('cgDoneGrid');
+    released.forEach((p,i)=>{
+      const cell = document.createElement('div');
+      cell.className = 'photo-cell readonly package-thumb';
+      cell.innerHTML = `<div class="frame"><img src="${p.preview_url}"></div><a class="dl-btn" href="/public/galleries/${g.code}/photos/${p.id}/download${pinQuery()}">baixar</a>`;
+      cell.querySelector('.frame').addEventListener('click', ()=> openLightbox(released, i));
+      grid.appendChild(cell);
+    });
+  }
 
   /* ================= CLIENT: event by link (busca facial) ================= */
   async function openClientEvent(slug){
@@ -1249,8 +1713,7 @@
     }
     if(path.startsWith('/g/')){
       const code = path.slice(3).toUpperCase();
-      try{ await api(`/public/galleries/${code}`); openClientGallery(code); }
-      catch(e){ showView('view-home'); }
+      openClientGallery(code);
       return;
     }
     if(path === '/redefinir-senha'){
@@ -1261,6 +1724,12 @@
     }
     if(path === '/painel' && state.photographer){
       openDashboard();
+      return;
+    }
+    if(path === '/admin'){
+      const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+      if(adminToken){ state.adminToken = adminToken; openAdminDashboard(); }
+      else showView('view-admin-login');
       return;
     }
     showView('view-home');

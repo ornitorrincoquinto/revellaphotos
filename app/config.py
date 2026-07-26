@@ -44,6 +44,12 @@ class Settings(BaseSettings):
     smtp_from: str = os.getenv("SMTP_FROM", "")
     smtp_use_tls: bool = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 
+    # Acesso master (painel /admin) — não é uma conta de fotógrafo, é uma
+    # credencial separada definida só por variável de ambiente. TROQUE as duas
+    # em produção; sem isso configurado, o painel master fica inacessível.
+    admin_username: str = os.getenv("ADMIN_USERNAME", "")
+    admin_password: str = os.getenv("ADMIN_PASSWORD", "")
+
     class Config:
         env_file = ".env"
 

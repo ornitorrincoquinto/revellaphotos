@@ -22,6 +22,9 @@ class Photographer(Base):
     email = Column(String, unique=True, nullable=True, index=True)
     phone = Column(String, nullable=True)
     password_hash = Column(String, nullable=False)
+    pix_key = Column(String, nullable=True)
+    pix_city = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)  # admin pode desativar uma conta
     created_at = Column(DateTime, default=datetime.utcnow)
 
     galleries = relationship("Gallery", back_populates="photographer", cascade="all, delete-orphan")
@@ -29,8 +32,9 @@ class Photographer(Base):
 
 
 # ---------------------------------------------------------------------------
-# Galeria com seleção: cliente recebe um código, marca as fotos que quer e
-# paga por unidades além do pacote incluso. (Fluxo do protótipo original.)
+# Galeria com seleção: cliente recebe um código (e, opcionalmente, um PIN de
+# 6 dígitos), marca as fotos do pacote contratado, confirma esse pacote (que
+# trava e já libera download), e pode escolher fotos extras além dele.
 # ---------------------------------------------------------------------------
 class Gallery(Base):
     __tablename__ = "galleries"
@@ -42,6 +46,7 @@ class Gallery(Base):
     client_name = Column(String, nullable=False)
     free_count = Column(Integer, default=0)
     extra_price = Column(Float, default=0.0)
+    lock_pin = Column(String, nullable=True)  # PIN de 6 dígitos, opcional (texto simples — é um PIN combinado verbalmente, não uma senha de login)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     photographer = relationship("Photographer", back_populates="galleries")
@@ -66,11 +71,22 @@ class Selection(Base):
 
     id = Column(String, primary_key=True, default=uid)
     gallery_id = Column(String, ForeignKey("galleries.id"), nullable=False, unique=True)
-    selected_photo_ids = Column(Text, default="[]")  # JSON: lista de GalleryPhoto.id
+
+    # Pacote contratado: escolha inicial, travada depois de confirmada.
+    package_photo_ids = Column(Text, default="[]")   # JSON: lista de GalleryPhoto.id
+    package_confirmed_at = Column(DateTime, nullable=True)
+
+    # Fotos extras: só podem ser escolhidas depois que o pacote for confirmado.
+    extra_photo_ids = Column(Text, default="[]")     # JSON: lista de GalleryPhoto.id
     extra_count = Column(Integer, default=0)
     extra_cost = Column(Float, default=0.0)
-    confirmed_at = Column(DateTime, nullable=True)
+    extras_confirmed_at = Column(DateTime, nullable=True)
+
     updated_at = Column(DateTime, default=datetime.utcnow)
+
+    # 'sem_cobranca' (nada a pagar) | 'aguardando_pagamento' | 'pago'
+    payment_status = Column(String, default="sem_cobranca")
+    payment_confirmed_at = Column(DateTime, nullable=True)
 
     gallery = relationship("Gallery", back_populates="selection")
 

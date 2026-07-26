@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas, security
 from ..database import get_db
+from ..deps import get_current_photographer
 from ..email_utils import send_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -31,7 +32,7 @@ def register(payload: schemas.RegisterIn, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(photographer)
 
-    token = security.create_access_token(subject=photographer.id)
+    token = security.create_access_token(subject=photographer.id, role="photographer")
     return schemas.TokenOut(access_token=token, photographer_name=photographer.name)
 
 
@@ -41,8 +42,10 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
     photographer = db.query(models.Photographer).filter(models.Photographer.username == username).first()
     if not photographer or not security.verify_password(payload.password, photographer.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário ou senha incorretos.")
+    if not photographer.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Esta conta foi desativada.")
 
-    token = security.create_access_token(subject=photographer.id)
+    token = security.create_access_token(subject=photographer.id, role="photographer")
     return schemas.TokenOut(access_token=token, photographer_name=photographer.name)
 
 
@@ -109,3 +112,55 @@ def reset_password(payload: schemas.ResetPasswordIn, db: Session = Depends(get_d
     db.commit()
 
     return schemas.MessageOut(message="Senha redefinida com sucesso. Você já pode entrar com a nova senha.")
+
+
+# ---------------------------------------------------------------------------
+# Perfil do fotógrafo — nome, e-mail, telefone e a chave Pix usada pra gerar
+# o QR code de cobrança das fotos extras (ver routers/galleries.py).
+# ---------------------------------------------------------------------------
+@router.get("/me", response_model=schemas.ProfileOut)
+def get_me(photographer: models.Photographer = Depends(get_current_photographer)):
+    return photographer
+
+
+@router.patch("/me", response_model=schemas.ProfileOut)
+def update_me(
+    payload: schemas.ProfileUpdateIn,
+    db: Session = Depends(get_db),
+    photographer: models.Photographer = Depends(get_current_photographer),
+):
+    if payload.name is not None and payload.name.strip():
+        photographer.name = payload.name.strip()
+    if payload.email is not None:
+        new_email = payload.email or None
+        if new_email:
+            clash = (
+                db.query(models.Photographer)
+                .filter(models.Photographer.email == new_email, models.Photographer.id != photographer.id)
+                .first()
+            )
+            if clash:
+                raise HTTPException(status_code=400, detail="Esse e-mail já está em uso por outra conta.")
+        photographer.email = new_email
+    if payload.phone is not None:
+        photographer.phone = payload.phone.strip() or None
+    if payload.pix_key is not None:
+        photographer.pix_key = payload.pix_key.strip() or None
+    if payload.pix_city is not None:
+        photographer.pix_city = payload.pix_city.strip() or None
+    db.commit()
+    db.refresh(photographer)
+    return photographer
+
+
+@router.post("/me/change-password", response_model=schemas.MessageOut)
+def change_password(
+    payload: schemas.ChangePasswordIn,
+    db: Session = Depends(get_db),
+    photographer: models.Photographer = Depends(get_current_photographer),
+):
+    if not security.verify_password(payload.current_password, photographer.password_hash):
+        raise HTTPException(status_code=400, detail="Senha atual incorreta.")
+    photographer.password_hash = security.hash_password(payload.new_password)
+    db.commit()
+    return schemas.MessageOut(message="Senha alterada com sucesso.")
