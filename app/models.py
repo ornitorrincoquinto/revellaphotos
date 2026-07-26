@@ -20,6 +20,7 @@ class Photographer(Base):
     name = Column(String, nullable=False)
     username = Column(String, unique=True, nullable=False, index=True)
     email = Column(String, unique=True, nullable=True, index=True)
+    phone = Column(String, nullable=True)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -116,3 +117,18 @@ class FaceEncoding(Base):
     encoding_json = Column(Text, nullable=False)  # JSON: vetor de 128 floats
 
     photo = relationship("EventPhoto", back_populates="encodings")
+
+
+# ---------------------------------------------------------------------------
+# Recuperação de senha: token de uso único, com validade curta, enviado por
+# e-mail para o fotógrafo redefinir a senha sem precisar falar com suporte.
+# ---------------------------------------------------------------------------
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(String, primary_key=True, default=uid)
+    photographer_id = Column(String, ForeignKey("photographers.id"), nullable=False)
+    token = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False)

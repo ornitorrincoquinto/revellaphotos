@@ -1,10 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import secrets
+from datetime import datetime, timedelta
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from .. import models, schemas, security
 from ..database import get_db
+from ..email_utils import send_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+RESET_TOKEN_EXPIRE_MINUTES = 30
 
 
 @router.post("/register", response_model=schemas.TokenOut)
@@ -17,7 +23,8 @@ def register(payload: schemas.RegisterIn, db: Session = Depends(get_db)):
     photographer = models.Photographer(
         name=payload.name.strip(),
         username=username,
-        email=payload.email,
+        email=(payload.email or None),
+        phone=(payload.phone.strip() if payload.phone else None),
         password_hash=security.hash_password(payload.password),
     )
     db.add(photographer)
@@ -37,3 +44,68 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
 
     token = security.create_access_token(subject=photographer.id)
     return schemas.TokenOut(access_token=token, photographer_name=photographer.name)
+
+
+# ---------------------------------------------------------------------------
+# Recuperação de senha. A resposta é sempre a mesma mensagem genérica, exista
+# ou não o usuário/e-mail — evita que alguém use esse endpoint pra descobrir
+# quais contas existem no sistema.
+# ---------------------------------------------------------------------------
+@router.post("/forgot-password", response_model=schemas.MessageOut)
+def forgot_password(payload: schemas.ForgotPasswordIn, request: Request, db: Session = Depends(get_db)):
+    generic_message = "Se esse usuário ou e-mail existir, enviamos um link de redefinição de senha."
+    identifier = payload.identifier.strip().lower()
+    if not identifier:
+        return schemas.MessageOut(message=generic_message)
+
+    photographer = (
+        db.query(models.Photographer)
+        .filter(
+            (models.Photographer.username == identifier)
+            | (models.Photographer.email == identifier)
+        )
+        .first()
+    )
+
+    if photographer and photographer.email:
+        token = secrets.token_urlsafe(32)
+        reset = models.PasswordResetToken(
+            photographer_id=photographer.id,
+            token=token,
+            expires_at=datetime.utcnow() + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES),
+        )
+        db.add(reset)
+        db.commit()
+
+        base_url = str(request.base_url).rstrip("/")
+        link = f"{base_url}/redefinir-senha?token={token}"
+        send_email(
+            to_email=photographer.email,
+            subject="Redefinição de senha — REVELA",
+            body=(
+                f"Olá, {photographer.name}!\n\n"
+                f"Recebemos um pedido para redefinir a senha da sua conta REVELA.\n"
+                f"Clique no link abaixo para criar uma nova senha (válido por {RESET_TOKEN_EXPIRE_MINUTES} minutos):\n\n"
+                f"{link}\n\n"
+                f"Se você não pediu isso, pode ignorar este e-mail."
+            ),
+        )
+
+    return schemas.MessageOut(message=generic_message)
+
+
+@router.post("/reset-password", response_model=schemas.MessageOut)
+def reset_password(payload: schemas.ResetPasswordIn, db: Session = Depends(get_db)):
+    reset = db.query(models.PasswordResetToken).filter(models.PasswordResetToken.token == payload.token).first()
+    if not reset or reset.used or reset.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Link inválido ou expirado. Peça uma nova redefinição.")
+
+    photographer = db.query(models.Photographer).filter(models.Photographer.id == reset.photographer_id).first()
+    if not photographer:
+        raise HTTPException(status_code=400, detail="Conta não encontrada.")
+
+    photographer.password_hash = security.hash_password(payload.new_password)
+    reset.used = True
+    db.commit()
+
+    return schemas.MessageOut(message="Senha redefinida com sucesso. Você já pode entrar com a nova senha.")

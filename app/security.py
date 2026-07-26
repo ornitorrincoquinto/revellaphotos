@@ -8,6 +8,8 @@ from .config import settings
 
 
 def _prepare(password: str) -> bytes:
+    # bcrypt só considera os primeiros 72 bytes de qualquer senha — isso é uma
+    # limitação do próprio algoritmo, não do nosso código.
     return password.encode("utf-8")[:72]
 
 

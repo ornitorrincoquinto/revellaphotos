@@ -9,6 +9,7 @@ class RegisterIn(BaseModel):
     username: str
     password: str = Field(min_length=6)
     email: Optional[EmailStr] = None
+    phone: Optional[str] = None
 
 
 class LoginIn(BaseModel):
@@ -20,6 +21,19 @@ class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
     photographer_name: str
+
+
+class ForgotPasswordIn(BaseModel):
+    identifier: str  # usuário ou e-mail
+
+
+class ResetPasswordIn(BaseModel):
+    token: str
+    new_password: str = Field(min_length=6)
+
+
+class MessageOut(BaseModel):
+    message: str
 
 
 # ---------- galleries (seleção com cobrança de extras) ----------

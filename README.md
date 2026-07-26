@@ -112,6 +112,51 @@ zero. As próximas builds usam cache e são bem mais rápidas.
 - Processar o reconhecimento facial no upload deixa o envio de fotos mais
   lento (alguns segundos por foto). Isso é esperado rodando em CPU.
 
+## Recuperação de senha (configurar SMTP)
+
+O "esqueci minha senha" só envia o e-mail de verdade se você configurar um
+provedor SMTP nas variáveis de ambiente. Sem isso, o link de redefinição só
+aparece no **Deploy Logs** (funciona pra você testar, mas o cliente final não
+vai receber nada).
+
+Variáveis a adicionar no Railway (Variables):
+
+```
+SMTP_HOST=smtp.seuservico.com
+SMTP_PORT=587
+SMTP_USER=seu_usuario
+SMTP_PASSWORD=sua_senha_ou_app_password
+SMTP_FROM=contato@seudominio.com
+SMTP_USE_TLS=true
+```
+
+Qualquer provedor SMTP serve (Gmail com "senha de app", SendGrid, Resend,
+Mailgun, Amazon SES etc). Se usar Gmail, você precisa gerar uma "senha de
+app" nas configurações de segurança da conta — a senha normal não funciona
+com SMTP.
+
+## Importante: você já tem um banco em produção
+
+Se você já criou contas de teste antes de atualizar pra essa versão (que
+adicionou o campo `phone` e a tabela de redefinição de senha), saiba que o
+`Base.metadata.create_all()` só **cria tabelas que ainda não existem** — ele
+não altera tabelas já existentes. Ou seja, a tabela `password_reset_tokens`
+nova vai ser criada automaticamente, mas a coluna `phone` não vai aparecer
+sozinha na tabela `photographers` já existente.
+
+Como isso ainda é fase de teste, o caminho mais simples é resetar o banco:
+- Se estiver no SQLite (sem `DATABASE_URL` configurada): é só remover o
+  volume/arquivo do banco e deixar recriar do zero no próximo deploy.
+- Se estiver no Postgres: rode esse comando uma vez (via algum cliente
+  Postgres, ou a aba "Query" do próprio Railway se seu plano tiver isso):
+  ```sql
+  ALTER TABLE photographers ADD COLUMN phone VARCHAR;
+  ```
+
+Pra evoluir isso de forma mais séria (sem precisar lembrar de rodar SQL manual
+a cada mudança), o passo natural mais pra frente é adotar o Alembic
+(migrações versionadas do SQLAlchemy).
+
 ## Próximos passos sugeridos
 
 - Cobrança de pagamento pelas fotos extras — combinamos de deixar pra uma

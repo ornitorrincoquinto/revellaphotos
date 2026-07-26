@@ -34,6 +34,16 @@ class Settings(BaseSettings):
     # Origens permitidas para chamadas do frontend (separadas por vírgula).
     cors_origins: str = os.getenv("CORS_ORIGINS", "*")
 
+    # SMTP para o e-mail de "esqueci minha senha". Se smtp_host ficar vazio,
+    # o link de redefinição só é impresso no log (ok pra teste, não pra
+    # produção — configure um provedor de verdade, ex: Gmail, SendGrid, Resend).
+    smtp_host: str = os.getenv("SMTP_HOST", "")
+    smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user: str = os.getenv("SMTP_USER", "")
+    smtp_password: str = os.getenv("SMTP_PASSWORD", "")
+    smtp_from: str = os.getenv("SMTP_FROM", "")
+    smtp_use_tls: bool = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
+
     class Config:
         env_file = ".env"
 
