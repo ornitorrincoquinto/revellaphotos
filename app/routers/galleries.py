@@ -1,11 +1,13 @@
+import io
 import json
 import os
 import random
+import zipfile
 from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -39,6 +41,10 @@ def _gallery_out(gallery: models.Gallery) -> schemas.GalleryOut:
             for p in gallery.photos
         ],
     )
+
+
+def _gallery_owner_out(gallery: models.Gallery) -> schemas.GalleryOwnerOut:
+    return schemas.GalleryOwnerOut(**_gallery_out(gallery).model_dump(), lock_pin=gallery.lock_pin)
 
 
 def _selection_out(sel: Optional[models.Selection]) -> schemas.SelectionOut:
@@ -90,7 +96,7 @@ def _get_or_create_selection(db: Session, gallery: models.Gallery) -> models.Sel
 
 
 # =================================================================== fotógrafo
-@router.post("/galleries", response_model=schemas.GalleryOut)
+@router.post("/galleries", response_model=schemas.GalleryOwnerOut)
 def create_gallery(
     payload: schemas.GalleryCreateIn,
     db: Session = Depends(get_db),
@@ -113,7 +119,7 @@ def create_gallery(
     db.add(gallery)
     db.commit()
     db.refresh(gallery)
-    return _gallery_out(gallery)
+    return _gallery_owner_out(gallery)
 
 
 @router.get("/galleries", response_model=List[schemas.GalleryOut])
@@ -130,17 +136,17 @@ def list_my_galleries(
     return [_gallery_out(g) for g in galleries]
 
 
-@router.get("/galleries/{gallery_id}", response_model=schemas.GalleryOut)
+@router.get("/galleries/{gallery_id}", response_model=schemas.GalleryOwnerOut)
 def get_gallery(
     gallery_id: str,
     db: Session = Depends(get_db),
     photographer: models.Photographer = Depends(get_current_photographer),
 ):
     gallery = _get_owned_gallery(db, gallery_id, photographer.id)
-    return _gallery_out(gallery)
+    return _gallery_owner_out(gallery)
 
 
-@router.patch("/galleries/{gallery_id}", response_model=schemas.GalleryOut)
+@router.patch("/galleries/{gallery_id}", response_model=schemas.GalleryOwnerOut)
 def update_gallery(
     gallery_id: str,
     payload: schemas.GalleryUpdateIn,
@@ -164,10 +170,10 @@ def update_gallery(
             gallery.lock_pin = payload.lock_pin.strip()
     db.commit()
     db.refresh(gallery)
-    return _gallery_out(gallery)
+    return _gallery_owner_out(gallery)
 
 
-@router.post("/galleries/{gallery_id}/photos", response_model=schemas.GalleryOut)
+@router.post("/galleries/{gallery_id}/photos", response_model=schemas.GalleryOwnerOut)
 def upload_gallery_photos(
     gallery_id: str,
     files: List[UploadFile] = File(...),
@@ -189,10 +195,10 @@ def upload_gallery_photos(
 
     db.commit()
     db.refresh(gallery)
-    return _gallery_out(gallery)
+    return _gallery_owner_out(gallery)
 
 
-@router.delete("/galleries/{gallery_id}/photos/{photo_id}", response_model=schemas.GalleryOut)
+@router.delete("/galleries/{gallery_id}/photos/{photo_id}", response_model=schemas.GalleryOwnerOut)
 def delete_gallery_photo(
     gallery_id: str,
     photo_id: str,
@@ -216,7 +222,7 @@ def delete_gallery_photo(
     db.delete(photo)
     db.commit()
     db.refresh(gallery)
-    return _gallery_out(gallery)
+    return _gallery_owner_out(gallery)
 
 
 @router.delete("/galleries/{gallery_id}")
@@ -417,4 +423,40 @@ def public_download_photo(
         photo.original_path,
         filename=f"{gallery.code}-{photo_id[:8]}{ext}",
         media_type="application/octet-stream",
+    )
+
+
+def _released_photos(gallery: models.Gallery) -> List[models.GalleryPhoto]:
+    sel = gallery.selection
+    if not sel:
+        return []
+    package_ids = set(json.loads(sel.package_photo_ids or "[]"))
+    extra_ids = set(json.loads(sel.extra_photo_ids or "[]")) if sel.payment_status == "pago" else set()
+    released_ids = package_ids | extra_ids
+    return [p for p in gallery.photos if p.id in released_ids]
+
+
+@router.get("/public/galleries/{code}/download-all")
+def public_download_all(code: str, pin: Optional[str] = Query(default=None), db: Session = Depends(get_db)):
+    """Baixa todas as fotos já liberadas (pacote confirmado + extras pagas) num único .zip."""
+    gallery = _get_public_gallery(db, code)
+    _check_gallery_pin(gallery, pin)
+
+    photos = _released_photos(gallery)
+    if not photos:
+        raise HTTPException(status_code=400, detail="Nenhuma foto liberada para download ainda.")
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_STORED) as zf:
+        for i, photo in enumerate(photos, start=1):
+            if not os.path.exists(photo.original_path):
+                continue
+            ext = os.path.splitext(photo.original_path)[1] or ".jpg"
+            zf.write(photo.original_path, arcname=f"{gallery.code}-{i:03d}{ext}")
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{gallery.code}-fotos.zip"'},
     )

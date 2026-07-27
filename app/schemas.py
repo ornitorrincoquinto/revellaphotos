@@ -101,6 +101,10 @@ class GalleryOut(BaseModel):
         from_attributes = True
 
 
+class GalleryOwnerOut(GalleryOut):
+    lock_pin: Optional[str] = None
+
+
 class PackageConfirmIn(BaseModel):
     selected_photo_ids: List[str]
 

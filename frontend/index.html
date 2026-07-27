@@ -208,6 +208,13 @@
   .status-pill.wait{background:rgba(201,162,39,0.15);color:var(--accent-2);}
   .status-pill.ok{background:rgba(107,168,110,0.15);color:#7FC48A;}
   .pix-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;text-align:center;}
+  .warn-box{
+    background:rgba(201,162,39,0.10);border:1px solid rgba(201,162,39,0.35);border-radius:var(--radius);
+    padding:16px 18px;margin-bottom:22px;
+  }
+  .warn-box p{margin:0 0 12px;font-size:13px;color:var(--text);line-height:1.5;}
+  .warn-box .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .warn-box input{flex:1;min-width:180px;background:var(--ink-2);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:var(--radius);font-size:13px;}
   .pix-box img{width:220px;height:220px;background:#fff;padding:10px;border-radius:6px;}
   .pix-code-box{
     background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;
@@ -373,6 +380,7 @@
     <div class="panel">
       <h2 style="font-size:22px;margin-bottom:6px;">Nova galeria de seleção</h2>
       <p style="color:var(--text-dim);font-size:13px;margin-bottom:22px;">O cliente recebe um código, escolhe as fotos e paga por extras além do pacote incluso.</p>
+      <div id="pixWarningBox"></div>
       <div class="row2">
         <div class="field"><label>Título da galeria</label><input type="text" id="gTitle" placeholder="Ex: Ensaio Ana &amp; Bruno"></div>
         <div class="field"><label>Nome do cliente</label><input type="text" id="gClient" placeholder="Ex: Ana Souza"></div>
@@ -803,6 +811,9 @@
       const span = document.createElement('span');
       span.textContent = state.photographer.name;
       span.style.marginRight = "4px";
+      const panelBtn = document.createElement('button');
+      panelBtn.textContent = "Painel";
+      panelBtn.addEventListener('click', ()=> openDashboard());
       const gear = document.createElement('button');
       gear.className = 'gear-btn';
       gear.title = 'Configurações da conta';
@@ -812,6 +823,7 @@
       out.textContent = "Sair";
       out.addEventListener('click', ()=> logout(true));
       nav.appendChild(span);
+      nav.appendChild(panelBtn);
       nav.appendChild(gear);
       nav.appendChild(out);
     }
@@ -1037,8 +1049,35 @@
     document.getElementById('gPhotoUploadBlock').style.display = 'none';
     document.getElementById('gThumbGrid').innerHTML = "";
     document.getElementById('createGalleryBtn').style.display = 'inline-flex';
+    document.getElementById('pixWarningBox').innerHTML = "";
     state.currentGalleryId = null;
     showView('view-gallery-form');
+    checkPixKeyWarning();
+  }
+
+  async function checkPixKeyWarning(){
+    const box = document.getElementById('pixWarningBox');
+    try{
+      const p = await api('/auth/me', {auth:true});
+      if(p.pix_key) return;
+      box.innerHTML = `
+        <div class="warn-box">
+          <p>⚠️ Você ainda não cadastrou uma chave Pix. Sem ela, não é possível gerar a cobrança automática das fotos extras — mas dá pra criar a galeria normalmente e cadastrar depois em "⚙ Configurações".</p>
+          <div class="row">
+            <input type="text" id="pixWarnInput" placeholder="Sua chave Pix (CPF, e-mail, telefone ou aleatória)">
+            <button class="btn secondary small" id="pixWarnSaveBtn">Cadastrar agora</button>
+          </div>
+        </div>`;
+      document.getElementById('pixWarnSaveBtn').addEventListener('click', async ()=>{
+        const val = document.getElementById('pixWarnInput').value.trim();
+        if(!val) return;
+        try{
+          await api('/auth/me', {method:'PATCH', auth:true, json:{pix_key: val}});
+          toast("Chave Pix cadastrada.");
+          box.innerHTML = "";
+        }catch(err){ toast(err.message); }
+      });
+    }catch(err){ /* silencioso — não bloqueia a criação da galeria */ }
   }
 
   document.getElementById('createGalleryBtn').addEventListener('click', async ()=>{
@@ -1123,7 +1162,8 @@
           <div class="item"><div class="lbl">Fotos extras</div><div class="val">${sel.extra_count}</div></div>
           <div class="item"><div class="lbl">Valor das extras</div><div class="val">${money(sel.extra_cost)}</div></div>
           <div class="item"><div class="lbl">Pagamento</div><div class="val" style="font-size:13px;">${paymentLabel(sel.payment_status)}</div></div>
-        </div>`;
+        </div>
+        <a class="btn secondary small" style="margin-top:14px;" href="/public/galleries/${g.code}/download-all${g.lock_pin ? ('?pin='+g.lock_pin) : ''}">Baixar todas as fotos liberadas (.zip)</a>`;
       } else {
         statusEl.innerHTML = "<span class='badge empty'>Aguardando cliente</span>";
         summaryEl.innerHTML = "";
@@ -1155,7 +1195,7 @@
           <div class="frame"><img src="${p.preview_url}"><div class="mark-overlay">${markSvg()}</div></div>
           <div class="idx">${String(i+1).padStart(2,'0')}${isPackage ? ' · pacote' : (isExtra ? ' · extra' : '')}</div>
           <button type="button" class="rm" data-photo-id="${p.id}" title="Remover foto" style="position:absolute;top:4px;right:4px;">×</button>
-          ${released ? `<a class="dl-btn" href="/public/galleries/${g.code}/photos/${p.id}/download" style="position:absolute;bottom:4px;right:4px;background:rgba(20,22,26,.6);color:#fff;font-size:9px;padding:2px 6px;border-radius:2px;text-decoration:none;">baixar</a>` : ''}
+          ${released ? `<a class="dl-btn" href="/public/galleries/${g.code}/photos/${p.id}/download${g.lock_pin ? ('?pin='+g.lock_pin) : ''}" style="position:absolute;bottom:4px;right:4px;background:rgba(20,22,26,.6);color:#fff;font-size:9px;padding:2px 6px;border-radius:2px;text-decoration:none;">baixar</a>` : ''}
         `;
         cell.querySelector('.frame').addEventListener('click', ()=> openLightbox(g.photos, i));
         cell.querySelector('.rm').addEventListener('click', async (e)=>{
@@ -1508,7 +1548,7 @@
     const box = document.getElementById('cgContent');
     box.innerHTML = `
       <div class="light-table" style="margin-bottom:22px;">
-        <div class="lt-header"><h2 style="font-size:16px;">Seu pacote (confirmado)</h2></div>
+        <div class="lt-header"><h2 style="font-size:16px;">Seu pacote (confirmado)</h2><a class="btn secondary small" style="color:var(--ink-text);border-color:var(--ink-text-dim);" href="/public/galleries/${g.code}/download-all${pinQuery()}">Baixar todas (.zip)</a></div>
         <div class="photo-grid" id="cgPackageGrid"></div>
       </div>
       <p class="phase-note">Quer mais alguma foto além do pacote? Cada foto extra custa ${money(g.extra_price)}. Se não quiser nenhuma, pode confirmar sem selecionar nada.</p>
@@ -1635,6 +1675,7 @@
         </svg>
         <h2 style="font-size:20px;">Tudo liberado!</h2>
         <p style="color:var(--text-dim);margin-top:8px;">Suas fotos já estão disponíveis para download abaixo.</p>
+        <a class="btn" style="margin-top:16px;" href="/public/galleries/${g.code}/download-all${pinQuery()}">Baixar todas as fotos (.zip)</a>
       </div>
       <div class="light-table"><div class="photo-grid" id="cgDoneGrid"></div></div>`;
     const grid = document.getElementById('cgDoneGrid');
